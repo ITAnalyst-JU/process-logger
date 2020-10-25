@@ -1,3 +1,5 @@
 .idea
 *.iml
 logger_fifo
+index.html
+local_data/*
