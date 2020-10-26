@@ -1,7 +1,9 @@
 import fileinput
 import re
+import os
+
 from pyhtml import *
-from tinydb import TinyDB, Query
+from tinydb import Query, TinyDB
 
 line_types = [
     {"name": "write", "regex": "write", "function": "write_func"}
@@ -81,6 +83,10 @@ html_content = create_home_page(list(map(lambda x: x.my_to_string(), lines)))
 #print(html_content)
 html_file.write(html_content)
 
+try:
+    os.mkdir("local_data")
+except FileExistsError:
+    pass
 db_file = open("./local_data/db.json", "w+")
 db_file.close()
 db = TinyDB('./local_data/db.json')
