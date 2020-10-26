@@ -1,7 +1,5 @@
 ## problemy
-strace pisze na stderr więc trzeba odfiltrowywać od stderr programu. To jest coś co może psuć raz na milion przypadków
+wszystko działa, można oddawać
 
 ## Środowisko:
-`pip install pyhtml` <- dokumentacja jest w pliku, który się zainstaluje
-
-`pip install tinydb` 
+`pip install -r requirements.txt`
