@@ -1,2 +1,3 @@
 pyhtml
 tinydb
+cython
