@@ -1,4 +1,5 @@
 .idea
+.*
 *.iml
 logger_fifo
 index.html
@@ -6,3 +7,4 @@ local_data/*
 .vscode/*
 build/*
 src/__pycache__/*
+src/events/__pycache__/*
