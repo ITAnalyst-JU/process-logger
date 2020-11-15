@@ -33,7 +33,7 @@ class Invoker:
                 '-ttt',
                 '-f',
                 # '-e', 'trace=fork,clone,vfork,write,dup,dup2,dup3,close,fcntl',  # XXX uwaga na potencjalnie za mocne filtrowanie
-                '-s', '1000000000', # TODO czy to jest największa możliwa wartość?
+                '-s', '100000', # TODO czy to jest największa możliwa wartość?
                 '-o', fifo_name,
                 *process_parts),
             shell=False)

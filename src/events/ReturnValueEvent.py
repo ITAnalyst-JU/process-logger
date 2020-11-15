@@ -28,7 +28,7 @@ class ReturnValueEvent(Event):
             attrs.append({'name': 'signalName', 'value': self.signal_name})
 
         return json.dumps({
-            'type': 'returnvalue',
+            'type': 'RETURNVALUE',
             'content': '',
             'attributes': attrs })
 

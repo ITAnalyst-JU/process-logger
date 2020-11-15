@@ -17,7 +17,7 @@ class SubprocessEvent(Event):
     
     def to_ws_protocol(self) -> str:
         return json.dumps({
-            'type': 'subprocess',
+            'type': 'SUBPROCESS',
             'content': '',
             'attributes': [
                 {'name': 'childPid', 'value': int(self.child_pid)},

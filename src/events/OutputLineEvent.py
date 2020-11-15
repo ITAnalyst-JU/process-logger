@@ -22,7 +22,7 @@ class OutputLineEvent(Event):
     
     def to_ws_protocol(self) -> str:
         return json.dumps({
-            'type': 'line',
+            'type': 'LINE',
             'content': html.escape(self.line),
             'attributes': [
                 {'name': 'fd', 'value': int(self.fd)},
