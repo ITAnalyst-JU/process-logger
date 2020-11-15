@@ -34,6 +34,5 @@ class WSBroadcastEventWriter(EventWriter):
     async def write(self, event): 
         assert super().is_open()
         if len(self.__clients):
-            print('sending!')
             await asyncio.wait([c.send(event.to_ws_protocol()) for c in self.__clients])
 
