@@ -50,7 +50,7 @@ class Invoker:
             self.__frontend.write(event)
         self.__parser = StraceParser(callback)
 
-        self.__buffer = ''
+        self.__buffer = b''
         fifo_handle = open(fifo_name, 'rb', os.O_NONBLOCK)
         asyncio.get_event_loop().add_reader(fifo_handle, self.__fifo_read_possible, fifo_handle)
 
@@ -71,14 +71,14 @@ class Invoker:
 
         chunk = fd.read(num_chars)
         if len(chunk) == 0:  # EOF
-            if self.__buffer != '':
+            if self.__buffer != b'':
                 self.__parser.feed_line(self.__buffer)
             asyncio.get_event_loop().stop()
             return
 
-        chunk_utf8 = self.__buffer + chunk.decode('utf-8')
-        self.__buffer = ''
-        parts = chunk_utf8.split('\n')
+        chunk_ = self.__buffer + chunk
+        self.__buffer = b''
+        parts = chunk_.split(b'\n')
         assert len(parts) >= 1
         for p in parts[:-1]:
             self.__parser.feed_line(p)

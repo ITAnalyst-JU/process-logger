@@ -4,12 +4,14 @@ import signal
 from events.OutputLineEvent import OutputLineEvent
 from events.ReturnValueEvent import ReturnValueEvent
 from events.SubprocessEvent import SubprocessEvent
+from ANSIEscapeCodeParser import ANSIEscapeCodeParser
 
 class ParsedLine:
-    def __init__(self, pid, syscall_name, args, return_value, info=None, errno=None):
+    def __init__(self, pid, syscall_name, args, args_raw, return_value, info=None, errno=None):
         self.pid = pid
         self.syscall_name = syscall_name
         self.args = args
+        self.args_raw = args_raw
         self.return_value = return_value
         self.info = info
         self.errno = errno
@@ -22,6 +24,7 @@ class StraceParser:
         self.__line_buffer = dict()  # pid -> 'stdout'|'stderr' -> (buffer, timestamp)
         self.__stdout = dict()
         self.__stderr = dict()
+        self.__ansi_parser = ANSIEscapeCodeParser()
 
         self.__special_mapping = {
                 '+++ exited with ': self.__parse_return_value,
@@ -43,6 +46,7 @@ class StraceParser:
     # TODO rozważyć potrzebę napisania prawdziwego parsera, ewentualnie skorzystania z gotowego rozwiązania
     # TODO Jeśli nie, to chociaż przepisać to w jakiś bardziej cywilizowany sposób
     def feed_line(self, line):
+        assert type(line) == type(bytes())
         line = line.strip()
 
         # retrieve pid
@@ -50,7 +54,7 @@ class StraceParser:
         i = 0
         seen_space = False
         while i < len(line):
-            if line[i] == ' ':
+            if line[i] == ord(' '):
                 seen_space = True
             elif seen_space:
                 break
@@ -59,11 +63,11 @@ class StraceParser:
 
         # retrieve timestamp
         # XXX single-threaded, XXX not always separated by ' ', sometimes just by more whitespace
-        self.timestamp = int(line.split()[0].replace('.', ''))
+        self.timestamp = int(line.split()[0].replace(b'.', b''))
         i = 0
         seen_space = False
         while i < len(line):
-            if line[i] == ' ':
+            if line[i] == ord(' '):
                 seen_space = True
             elif seen_space:
                 break
@@ -71,13 +75,13 @@ class StraceParser:
         self.line = line = line[i:]  # drop the timestamp and whitespace
 
         # ignore lines starting with '---', containing signal information
-        if line.startswith('--- '):
+        if line.startswith(b'--- '):
             return
 
         # handle unfinished syscalls
-        if not line.startswith('+++ '):  # TODO czy napewno 
+        if not line.startswith(b'+++ '):  # TODO czy napewno 
             syscall_name = ''
-            match_result = re.match('^<... ([0-9a-zA-Z_]+) resumed>', self.line)
+            match_result = re.match(b'^<... ([0-9a-zA-Z_]+) resumed>', self.line)
             if match_result is not None:
                 # XXX PID seems necessary in order to avoid collisions, this part of strace's behavior appears to be entirely undocumented
                 syscall_name = match_result.group(1)
@@ -87,8 +91,8 @@ class StraceParser:
                 self.timestamp = self.__unfinished_syscalls[key]['timestamp']
                 self.line = line = self.__unfinished_syscalls[key]['line_start'] + line[len(match_result.group(0)):]
                 del self.__unfinished_syscalls[key]
-            elif line.endswith(' <unfinished ...>'):
-                syscall_name = line.split('(')[0]
+            elif line.endswith(b' <unfinished ...>'):
+                syscall_name = line.split(b'(')[0]
                 # XXX PID seems necessary in order to avoid collisions, this part of strace's behavior appears to be entirely undocumented
                 key = (syscall_name, self.pid)
                 assert key not in self.__unfinished_syscalls
@@ -99,7 +103,8 @@ class StraceParser:
                 return
 
         for k, v in self.__special_mapping.items():
-            if line.startswith(k):
+            if line.startswith(k.encode('utf-8')):
+                self.line = line = self.line.decode('utf-8')
                 return v()
 
         try:
@@ -112,7 +117,8 @@ class StraceParser:
             return
             
         for k, v in self.__syscall_mapping.items():
-            if self.parsed.syscall_name == k:
+            if self.parsed.syscall_name == k.encode('utf-8'):
+                self.line = line = self.line.decode('utf-8')
                 return v()
 
 
@@ -150,27 +156,29 @@ class StraceParser:
 
         if self.pid not in self.__line_buffer:
             self.__line_buffer[self.pid] = {
-                    'stdout': ['', self.timestamp],
-                    'stderr': ['', self.timestamp]}
+                    'stdout': [b'', self.timestamp],
+                    'stderr': [b'', self.timestamp]}
 
         # translate the cstring literal to a python str (omitting quotation marks)
         # and trim length to the number of characters actually written
         if python_str is None:
-            python_str = self.__c_string_literal_to_python_str(args[1][1:-1])[:self.parsed.return_value]
+            python_str = self.__c_string_literal_to_python_str(self.parsed.args_raw[1][1:-1])[:self.parsed.return_value]
 
         # TODO co teraz robić z timestampem?
         python_str = self.__line_buffer[self.pid][requested_output][0] + python_str
-        if '\n' not in python_str:
+        if b'\n' not in python_str:
             self.__line_buffer[self.pid][requested_output][0] = python_str
             return
-        elif python_str[-1] != '\n':
-            idx = python_str[::-1].index('\n')
+        elif python_str[-1] != ord('\n'):
+            idx = python_str[::-1].index(b'\n')
             self.__line_buffer[self.pid][requested_output][0] = python_str[-idx:]
             python_str = python_str[:-idx]
 
+        python_str = python_str.decode('utf-8')
+        if python_str == '\n': return
         assert python_str[-1] == '\n'
         for line in python_str[:-1].split('\n'):
-            self.__event_callback(OutputLineEvent(self.timestamp, self.pid, line, requested_fd))
+            self.__event_callback(OutputLineEvent(self.timestamp, self.pid, self.__ansi_parser.feed(line), requested_fd))
 
 
     def __handle_dup(self):
@@ -265,71 +273,72 @@ class StraceParser:
             if buff[0] != '':
                 self.pid = pid
                 self.timestamp = buff[1]
-                self.__handle_write('\n', 1)  # TODO frontend should somehow signify this lack of '\n'
+                self.__handle_write(b'\n', 1)  # TODO frontend should somehow signify this lack of '\n'
 
         if flush_stderr:
             buff = self.__line_buffer[pid]['stderr']
             if buff[0] != '':
                 self.pid = pid
                 self.timestamp = buff[1]
-                self.__handle_write('\n', 2)  # TODO frontend should somehow signify this lack of '\n'
+                self.__handle_write(b'\n', 2)  # TODO frontend should somehow signify this lack of '\n'
 
 
     def __c_string_literal_to_python_str(self, literal):
+        assert type(literal) == type(bytes())
         # XXX https://en.wikipedia.org/wiki/Escape_sequences_in_C#Table_of_escape_sequences
         mapping = {
-                'a' : 0x07,
-                'b' : 0x08,
-                'e' : 0x1b,
-                'f' : 0x0c,
-                'n' : 0x0a,
-                'r' : 0x0d,
-                't' : 0x09,
-                'v' : 0x0b,
-                '\\': 0x5c,
-                "'" : 0x27,
-                '"' : 0x22,
-                '?' : 0x3f}
+                ord('a') : 0x07,
+                ord('b') : 0x08,
+                ord('e') : 0x1b,
+                ord('f') : 0x0c,
+                ord('n') : 0x0a,
+                ord('r') : 0x0d,
+                ord('t') : 0x09,
+                ord('v') : 0x0b,
+                ord('\\'): 0x5c,
+                ord("'") : 0x27,
+                ord('"') : 0x22,
+                ord('?') : 0x3f}
         unicode_codepoint_length_mapping = {
-                'x': 2,
-                'u': 4,
-                'U': 8}
+                ord('x'): 2,
+                ord('u'): 4,
+                ord('U'): 8}
 
-        ret = ''
+        ret = b''
 
         i = 0
         escaping = False
         while i < len(literal):
             if escaping:
                 if literal[i] in mapping:
-                    ret += chr(mapping[literal[i]])
+                    ret += bytes([ mapping[literal[i]] ])
                     i += 1
-                elif literal[i] in {'x', 'u', 'U'}:
+                elif literal[i] in {b'x', b'u', b'U'}:
                     substr_len = unicode_codepoint_length_mapping[literal[i]]
                     i += 1
                     assert i < len(literal)
                     assert substr_len <= len(literal) - i
-                    ret += chr(int(literal[i:i+substr_len], 16))
+                    ret += bytes([ int(literal[i:i+substr_len], 16) ])
                     i += substr_len
                 else:
                     if len(literal) - i >= 3:
-                        octal_matching = re.match('^[0-7][0-7][0-7]$', literal[i:i+3])
+                        octal_matching = re.match(b'^[0-7][0-7][0-7]$', literal[i:i+3])
                         if octal_matching is not None:
-                            ret += chr(int(literal[i:i+3], 8))
+                            ret += bytes([ int(literal[i:i+3], 8) ])
                             i += 3
                             escaping = False
                             continue
                     if len(literal) - i >= 2:
-                        octal_matching = re.match('^[0-7][0-7]$', literal[i:i+2])
+                        octal_matching = re.match(b'^[0-7][0-7]$', literal[i:i+2])
                         if octal_matching is not None:
-                            ret += chr(int(literal[i:i+2], 8))
+                            ret += bytes([ int(literal[i:i+2], 8) ])
                             i += 2
                             escaping = False
                             continue
                     if len(literal) - i >= 1:
-                        octal_matching = re.match('^[0-7]$', literal[i:i+1])
+                        octal_matching = re.match(b'^[0-7]$', literal[i:i+1])
                         if octal_matching is not None:
-                            ret += chr(int(literal[i:i+1], 8))
+                            ret += bytes([ int(literal[i:i+1], 8) ])
                             i += 1
                             escaping = False
                             continue
@@ -337,10 +346,10 @@ class StraceParser:
                 escaping = False
                 continue
             else:
-                if literal[i] == '\\':
+                if literal[i] == ord('\\'):
                     escaping = True
                 else:
-                    ret += literal[i]
+                    ret += bytes([ literal[i] ])
                 i += 1
                 continue
 
@@ -372,55 +381,55 @@ class StraceParser:
 
     
     def __parse_syscall(self):
-        parentheses = self.line.find('(')
+        parentheses = self.line.find(b'(')
         # assert parentheses != -1
         if parentheses == -1:
-            print(self.line)
+            print('no parens!', self.line)
             exit(1)
         syscall_name, rest = self.line[:parentheses], self.line[parentheses:]
 
         info, errno = None, None
-        if re.match(r'\(.*\)\s+= [0-9xa-f]+$', rest) is None:
+        if re.match(rb'\(.*\)\s+= [0-9xa-f]+$', rest) is None:
             # parse the information after the return value
-            if rest[-1] == ')':
+            if rest[-1] == ord(')'):
                 # returned flags / error information
-                parentheses = rest.rfind('(')
+                parentheses = rest.rfind(b'(')
                 info, rest = rest[parentheses:], rest[:parentheses]
                 rest = rest.rstrip()
-            if re.match(r'\(.*\)\s+= [0-9xa-f]+$', rest) is None:
+            if re.match(rb'\(.*\)\s+= [0-9xa-f]+$', rest) is None:
                 # errno code
-                space = rest.rfind(' ')
+                space = rest.rfind(b' ')
                 errno, rest = rest[space+1:], rest[:space]
 
-        parentheses = rest.rfind(')')
+        parentheses = rest.rfind(b')')
         args, rest = rest[1:parentheses], rest[parentheses+1:]
         args = self.__split_args(args)
         try:
-            return_value = int(rest[rest.find('=')+2:])
+            return_value = int(rest[rest.find(b'=')+2:])
         except ValueError:
-            return_value = rest[rest.find('=')+2:]
-        return ParsedLine(self.pid, syscall_name, args, return_value, info, errno)
+            return_value = rest[rest.find(b'=')+2:]
+        return ParsedLine(self.pid, syscall_name, [s.decode('utf-8') for s in args], args, return_value, info, errno)
 
-    def __split_args(self, args_string: str):
+    def __split_args(self, args_bytes: bytes):
         args = []
-        while args_string:
-            if args_string[0] == '"':
+        while args_bytes:
+            if args_bytes[0] == ord('"'):
                 # find the closing quote
                 closing_quote = -1
-                for i in range(1, len(args_string)):
-                    if args_string[i] == '"' and args_string[i-1] != '\\':
+                for i in range(1, len(args_bytes)):
+                    if args_bytes[i] == ord('"') and args_bytes[i-1] != ord('\\'):
                         closing_quote = i
                         break
-                args.append(args_string[:closing_quote+1])
-                args_string = args_string[closing_quote+3:]
+                args.append(args_bytes[:closing_quote+1])
+                args_bytes = args_bytes[closing_quote+3:]
             else:
-                comma = args_string.find(', ')
+                comma = args_bytes.find(b', ')
                 if comma == -1:
                     # last argument
-                    args.append(args_string)
+                    args.append(args_bytes)
                     break
-                args.append(args_string[:comma])
-                args_string = args_string[comma+2:]
+                args.append(args_bytes[:comma])
+                args_bytes = args_bytes[comma+2:]
         return args
 
 
@@ -433,3 +442,4 @@ if __name__ == "__main__":
             parser.feed_line(input())
         except EOFError:
             break
+

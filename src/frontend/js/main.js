@@ -70,8 +70,9 @@ function handleNode(node, processObj) {
 //TODO: Maybe special function to generate objects
 function handleLine(node, processObj) {
     var newLine = document.createElement('div');
-    var info = document.createTextNode(getTime(node) + ": " + node.innerText);
+    var info = document.createTextNode(getTime(node) + ": ");
     newLine.appendChild(info);
+    newLine.innerHTML += node.innerText;
     processObj.appendChild(newLine);
 }
 
