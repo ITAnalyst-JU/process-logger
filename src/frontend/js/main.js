@@ -72,7 +72,7 @@ function handleLine(node, processObj) {
     var newLine = document.createElement('div');
     var info = document.createTextNode(getTime(node) + ": ");
     newLine.appendChild(info);
-    newLine.innerHTML += node.innerText;
+    newLine.innerHTML += '<span style="white-space: pre-wrap;">' + node.innerText + '</span>';
     processObj.appendChild(newLine);
 }
 

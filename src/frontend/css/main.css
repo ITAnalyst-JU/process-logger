@@ -2,3 +2,11 @@ body {
   background: #eee;
 }
 
+p[id^=proc] span {
+  font-family: "Lucida Console", Monaco, monospace;
+}
+
+p[id^=proc] div {
+  line-height: 1;
+}
+
