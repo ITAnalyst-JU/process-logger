@@ -127,21 +127,25 @@ class StraceParser:
         self.__handle_closing_fd(pid, fd)
 
 
-    def __handle_write(self):
+    def __handle_write(self, python_str=None, requested_fd=None):
         args = self.parsed.args
-        requested_fd = int(args[0])
+        if requested_fd is None:
+            requested_fd = int(args[0])
         
-        # retrieve output from file descriptor number
-        requested_output = None
-        if requested_fd in self.__stdout.get(self.pid, {1}):
-            requested_fd = 1
-            requested_output = 'stdout'
-        elif requested_fd in self.__stderr.get(self.pid, {2}):
-            requested_fd = 2
-            requested_output = 'stderr'
+            # retrieve output from file descriptor number
+            if requested_fd in self.__stdout.get(self.pid, {1}):
+                requested_fd = 1
+            elif requested_fd in self.__stderr.get(self.pid, {2}):
+                requested_fd = 2
+            else:
+                return
 
-        # if output is not one of stdout or stderr, do nothing
-        if requested_output is None:
+        requested_output = None
+        if requested_fd == 1:
+            requested_output = 'stdout'
+        elif requested_fd == 2:
+            requested_output = 'stderr'
+        else:
             return
 
         if self.pid not in self.__line_buffer:
@@ -151,7 +155,8 @@ class StraceParser:
 
         # translate the cstring literal to a python str (omitting quotation marks)
         # and trim length to the number of characters actually written
-        python_str = self.__c_string_literal_to_python_str(args[1][1:-1])[:self.parsed.return_value]
+        if python_str is None:
+            python_str = self.__c_string_literal_to_python_str(args[1][1:-1])[:self.parsed.return_value]
 
         # TODO co teraz robić z timestampem?
         python_str = self.__line_buffer[self.pid][requested_output][0] + python_str
