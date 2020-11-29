@@ -5,12 +5,12 @@ window.addEventListener('load', () => {
   let socket = null
 
   function on_socket_message(event) {
-    console.log( event.data )
     //TODO: Take into account html
     var JSONData = JSON.parse(event.data);
     var newNode = {};
-    // TODO: Handle it somehow better, maybe parse html objects before handling nodes?
-    newNode.attributes = JSONData.attributes;
+    // TODO: Can we create node in less brutal way?
+    newNode.attributes = {};
+    JSONData.attributes.forEach((attr) => newNode.attributes[attr.name] = {"value": attr.value});
     newNode.nodeName = JSONData.type;
     newNode.innerText = JSONData.content;
     //TODO: Brute force solution
@@ -95,35 +95,23 @@ function handleSubprocess(node, processObj) {
     processObj.appendChild(newLine);
 }
 
-//TODO: Veeery ugly
-//TODO: Make timestamp human readable
+//TODO: We can add here some error handling for undefined fields
 function getTime(node) {
-    var timeField = node.attributes.time;
-    if (!timeField) {
-        timeField = node.attributes[2]
-    }
-    return timeField.value;
+    let timestamp = node.attributes.time.value;
+    let date = new Date(parseInt(timestamp) / 1000);
+    let hours = "00" + date.getHours();
+    let minutes = "00" + date.getMinutes();
+    let seconds = "00" + date.getSeconds();
+    return `${hours.substr(-2)}:${minutes.substr(-2)}:${seconds.substr(-2)}`;
 }
 function getValue(node) {
-    var valueField = node.attributes.value;
-    if (!valueField) {
-        valueField = node.attributes[0]
-    }
-    return valueField.value;
+    return node.attributes.value.value;
 }
 function getPid(node) {
-    var pidField = node.attributes.pid;
-    if (!pidField) {
-        pidField = node.attributes[1]
-    }
-    return pidField.value;
+    return node.attributes.pid.value;
 }
 function getChildPid(node) {
-    var childPidField = node.attributes.childPid;
-    if (!childPidField) {
-        childPidField = node.attributes[0]
-    }
-    return childPidField.value;
+    return node.attributes.childPid.value;
 }
 
 function removeCurrentContent(){
