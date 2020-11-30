@@ -27,6 +27,7 @@ class Invoker:
         self.__ws_broadcaster = WSBroadcastEventWriter()
         ws_port = self.__ws_broadcaster.port()
         self.__frontend = FrontendEventWriter(log_fname, title, ws_port) # TODO title
+        self.__next_event_id = 0
 
         monitored_process = subprocess.Popen(
             ('strace',
@@ -43,11 +44,13 @@ class Invoker:
                     sig,
                     functools.partial(self.__handle_signal, sig, monitored_process))
 
-        async def async_callback(event):
-            await self.__ws_broadcaster.write(event.builder())
+        async def async_callback(event_builder):
+            await self.__ws_broadcaster.write(event_builder)
         def callback(event):
-            asyncio.create_task(async_callback(event))
-            self.__frontend.write(event.builder())
+            builder = event.builder().attributes(ord=self.__next_event_id)
+            self.__next_event_id += 1
+            asyncio.create_task(async_callback(builder))
+            self.__frontend.write(builder)
         self.__parser = StraceParser(callback)
 
         self.__buffer = b''
