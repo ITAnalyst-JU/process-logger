@@ -61,10 +61,10 @@ class FrontendEventWriter(EventWriter):
         self.__f.flush()
 
     
-    def write(self, event):
+    def write(self, event_message_builder):
         assert super().is_open()
 
-        bytes_of_data = event.to_xml().encode('utf-8')
+        bytes_of_data = event_message_builder.to_xml().encode('utf-8')
 
         self.__f.seek(-self.__closing_tags_len, os.SEEK_END)
         self.__f.write(bytes_of_data)

@@ -11,7 +11,7 @@ class EventWriter:
         self.__is_active = False
 
 
-    def write(self, event):
+    def write(self, event_message_builder):
         raise NotImplementedError('This is an abstract interface')
 
 

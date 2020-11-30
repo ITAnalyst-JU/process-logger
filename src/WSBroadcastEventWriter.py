@@ -31,8 +31,8 @@ class WSBroadcastEventWriter(EventWriter):
             self.__clients.remove(websocket)
 
 
-    async def write(self, event): 
+    async def write(self, event_message_builder):
         assert super().is_open()
         if len(self.__clients):
-            await asyncio.wait([c.send(event.to_ws_protocol()) for c in self.__clients])
+            await asyncio.wait([c.send(event_message_builder.to_json()) for c in self.__clients])
 

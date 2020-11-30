@@ -44,10 +44,10 @@ class Invoker:
                     functools.partial(self.__handle_signal, sig, monitored_process))
 
         async def async_callback(event):
-            await self.__ws_broadcaster.write(event)
+            await self.__ws_broadcaster.write(event.builder())
         def callback(event):
             asyncio.create_task(async_callback(event))
-            self.__frontend.write(event)
+            self.__frontend.write(event.builder())
         self.__parser = StraceParser(callback)
 
         self.__buffer = b''
