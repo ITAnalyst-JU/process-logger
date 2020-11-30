@@ -8,7 +8,7 @@ class WSBroadcastEventWriter(EventWriter):
     def __init__(self):
         super().__init__()
         self.__clients = set()
-        self.__server = asyncio.get_event_loop().run_until_complete(websockets.serve(self.__handle_new_client, '', 0))
+        self.__server = asyncio.get_event_loop().run_until_complete(websockets.serve(self.__handle_new_client, '', 0, compression=None))
         self.__port = self.__server.server.sockets[0].getsockname()[1]
 
 
