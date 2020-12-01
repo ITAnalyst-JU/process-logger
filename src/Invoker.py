@@ -9,6 +9,7 @@ import subprocess
 from StraceParser import StraceParser
 from FrontendEventWriter import FrontendEventWriter
 from WSBroadcastEventWriter import WSBroadcastEventWriter
+from ShortTermMemoryOfEvents import ShortTermMemoryOfEvents
 
 
 # TODO error handling everywhere
@@ -27,7 +28,7 @@ class Invoker:
         self.__ws_broadcaster = WSBroadcastEventWriter()
         ws_port = self.__ws_broadcaster.port()
         self.__frontend = FrontendEventWriter(log_fname, title, ws_port) # TODO title
-        self.__next_event_id = 0
+        self.__memory = ShortTermMemoryOfEvents(10)
 
         monitored_process = subprocess.Popen(
             ('strace',
@@ -47,8 +48,8 @@ class Invoker:
         async def async_callback(event_builder):
             await self.__ws_broadcaster.write(event_builder)
         def callback(event):
-            builder = event.builder().attributes(ord=self.__next_event_id)
-            self.__next_event_id += 1
+            event_id = self.__memory.add_event(event)
+            builder = event.builder().attributes(ord=event_id)
             asyncio.create_task(async_callback(builder))
             self.__frontend.write(builder)
         self.__parser = StraceParser(callback)

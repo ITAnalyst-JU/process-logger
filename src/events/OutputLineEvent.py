@@ -4,6 +4,7 @@ from events.EventMessageBuilder import EventMessageBuilder
 
 class OutputLineEvent(Event):
     def __init__(self, unix_timestamp, pid, line, fd):
+        super().__init__(unix_timestamp)
         fd = int(fd)
         if fd not in {1,2}:
             raise ValueError(f'fd should be in {1,2} and {fd} is not')

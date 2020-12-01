@@ -5,6 +5,7 @@ from events.EventMessageBuilder import EventMessageBuilder
 # TODO: a może dodać krótkie nazwy tagów, dla zmniejszenia objętości plików oraz danych na łączu?
 class ReturnValueEvent(Event):
     def __init__(self, unix_timestamp, pid, return_value, signal_name=None):
+        super().__init__(unix_timestamp)
         self.content = ''
         self.attrs = { 'pid': pid
                      , 'time': unix_timestamp

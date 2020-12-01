@@ -21,7 +21,7 @@ class EventMessageBuilder:
         for k, v in self.attrs.items():
             if v is not None:
                 ret += f' {str(k)}="{str(v)}"'
-        ret += f'>{_str(self.content)}</{self.event_name}>'
+        ret += f'>{_str(self.content)}</{self.event_name}>\n'
         return ret
 
     def to_json(self):
