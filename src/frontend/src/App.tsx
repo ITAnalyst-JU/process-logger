@@ -1,5 +1,6 @@
 import React from 'react';
+import {LogTable} from "./LogTable";
 
 export default function App() {
-    return <h1>Content</h1>
+    return <LogTable/>
 }
