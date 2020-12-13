@@ -1,6 +1,7 @@
 export interface ParseEvent {
   time: number;
   pid: number;
+  content: string;
 }
 
 export interface ParseOutputLine extends ParseEvent {
@@ -18,15 +19,20 @@ export interface ParseReturnValue extends ParseEvent {
   signalName: string;
 }
 
-export enum ColumnNames {
+export enum TableColumn {
   Time,
   Pid,
   Content,
   // TODO: Add all possible.
 }
 
-export const columnsDisplayNames: Map<ColumnNames, string> = new Map([
-  [ColumnNames.Time, "Time"],
-  [ColumnNames.Pid, "Process ID"],
-  [ColumnNames.Content, "Output/Result"],
+export interface ColumnInfo {
+  key: string;
+  label: string;
+}
+
+export const columnsInfo: Map<TableColumn, ColumnInfo> = new Map([
+  [TableColumn.Time, { label: "Time", key: "time" }],
+  [TableColumn.Pid, { label: "Process ID", key: "pid" }],
+  [TableColumn.Content, { label: "Output/Result", key: "content" }],
 ]);
