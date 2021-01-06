@@ -28572,7 +28572,16 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _LogTable__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(13);
 /* harmony import */ var _types__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(30);
-/* harmony import */ var _EventsParser__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(31);
+/* harmony import */ var _eventsParser__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(31);
+/* harmony import */ var _Input__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(33);
+var __spreadArrays = (undefined && undefined.__spreadArrays) || function () {
+    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+    for (var r = Array(s), k = 0, i = 0; i < il; i++)
+        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
+            r[k] = a[j];
+    return r;
+};
+
 
 
 
@@ -28584,7 +28593,6 @@ function App() {
         function on_socket_message(event) {
             //TODO: Take into account html
             var JSONData = JSON.parse(event.data);
-            // TODO: Parse this in more civilized way?
             var newNode = {
                 attributes: {},
                 nodeName: JSONData.type,
@@ -28592,12 +28600,7 @@ function App() {
             };
             // @ts-ignore
             JSONData.attributes.forEach(function (attr) { return newNode.attributes[attr.name] = { "value": attr.value }; });
-            setData(data.concat({
-                time: 420,
-                pid: 24,
-                content: newNode.toString(),
-            }));
-            setData(data.concat(Object(_EventsParser__WEBPACK_IMPORTED_MODULE_3__["parseEvents"])(document.getElementById('data'))));
+            setData(__spreadArrays(dataRef.current, [Object(_eventsParser__WEBPACK_IMPORTED_MODULE_3__["parseEvent"])(newNode)]));
         }
         function on_socket_close(event) {
             console.log(event);
@@ -28617,15 +28620,23 @@ function App() {
         if (wss_port)
             initialize_websocket_connection();
     });
-    var _a = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])([]), data = _a[0], setData = _a[1];
+    window.onload = function () {
+        setStartMarker(true);
+    };
+    var _a = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])([]), data = _a[0], _setData = _a[1];
+    var dataRef = Object(react__WEBPACK_IMPORTED_MODULE_0__["useRef"])(data);
+    var setData = function (newData) {
+        dataRef.current = newData;
+        _setData(newData);
+    };
+    var _b = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(false), startMarker = _b[0], setStartMarker = _b[1];
     Object(react__WEBPACK_IMPORTED_MODULE_0__["useLayoutEffect"])(function () {
-        setData(data.concat(Object(_EventsParser__WEBPACK_IMPORTED_MODULE_3__["parseEvents"])(document.getElementById('data'))));
-    }, []);
-    var auxData = [
-        { time: 123, pid: 1234, content: "ala ma kota" },
-        { time: 1213, pid: 12234, content: "ala ma kota1" },
-    ];
-    return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_LogTable__WEBPACK_IMPORTED_MODULE_1__["LogTable"], { selectedColumns: [_types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].Time, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].Pid, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].Content], data: data });
+        console.log(document);
+        setData(Object(_eventsParser__WEBPACK_IMPORTED_MODULE_3__["parseEvents"])(document.getElementById('data')));
+    }, [startMarker]);
+    return (react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null,
+        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_Input__WEBPACK_IMPORTED_MODULE_4__["Input"], null),
+        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_LogTable__WEBPACK_IMPORTED_MODULE_1__["LogTable"], { selectedColumns: [_types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].Time, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].Pid, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].Content, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].ChildPid, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].EventType, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].FileDescriptor, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].ReturnValue], data: data })));
 }
 
 
@@ -28646,6 +28657,8 @@ __webpack_require__.r(__webpack_exports__);
 
 function LogTable(props) {
     var columns = props.selectedColumns.map(function (column) { return _types__WEBPACK_IMPORTED_MODULE_2__["columnsInfo"].get(column); });
+    console.log("render TABLE");
+    console.log(props.data);
     return (react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(reactable__WEBPACK_IMPORTED_MODULE_1__["Table"], { data: props.data, columns: columns }));
 }
 
@@ -30340,12 +30353,22 @@ var TableColumn;
     TableColumn[TableColumn["Time"] = 0] = "Time";
     TableColumn[TableColumn["Pid"] = 1] = "Pid";
     TableColumn[TableColumn["Content"] = 2] = "Content";
+    TableColumn[TableColumn["EventType"] = 3] = "EventType";
+    TableColumn[TableColumn["FileDescriptor"] = 4] = "FileDescriptor";
+    TableColumn[TableColumn["ChildPid"] = 5] = "ChildPid";
+    TableColumn[TableColumn["SignalName"] = 6] = "SignalName";
+    TableColumn[TableColumn["ReturnValue"] = 7] = "ReturnValue";
     // TODO: Add all possible.
 })(TableColumn || (TableColumn = {}));
 var columnsInfo = new Map([
     [TableColumn.Time, { label: "Time", key: "time" }],
     [TableColumn.Pid, { label: "Process ID", key: "pid" }],
-    [TableColumn.Content, { label: "Output/Result", key: "content" }],
+    [TableColumn.Content, { label: "Output", key: "content" }],
+    [TableColumn.EventType, { label: "Event", key: "eventType" }],
+    [TableColumn.FileDescriptor, { label: "Output fd", key: "fd" }],
+    [TableColumn.ChildPid, { label: "New process PID", key: "childPid" }],
+    [TableColumn.SignalName, { label: "Signal Name", key: "signalName" }],
+    [TableColumn.ReturnValue, { label: "Return Value", key: "returnValue" }],
 ]);
 
 
@@ -30356,10 +30379,12 @@ var columnsInfo = new Map([
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "parseEvents", function() { return parseEvents; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "parseEvent", function() { return parseEvent; });
+/* harmony import */ var _timeUtils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(32);
+
 function parseEvents(rawEventsList) {
     if (rawEventsList) {
         var objects_1 = [];
-        console.log(rawEventsList.childNodes);
         rawEventsList.childNodes.forEach(function (node) {
             var parsed = parseEvent(node);
             if (parsed) {
@@ -30371,31 +30396,69 @@ function parseEvents(rawEventsList) {
     return [];
 }
 function parseEvent(node) {
-    // TODO: Temporary solution
-    // TODO: This whole function needs to be refactored.
-    var tmpNode = node;
-    if (tmpNode.nodeName === 'LINE') {
+    if (node.nodeName === 'LINE') {
         return {
-            time: tmpNode.attributes.time.value,
-            pid: tmpNode.attributes.pid.value,
-            content: tmpNode.innerText,
+            time: Object(_timeUtils__WEBPACK_IMPORTED_MODULE_0__["humanReadableTime"])(node.attributes.time.value),
+            pid: node.attributes.pid.value,
+            eventType: "Output",
+            fd: node.attributes.fd.value,
+            content: node.innerText,
         };
     }
-    if (tmpNode.nodeName === 'SUBPROCESS') {
+    if (node.nodeName === 'SUBPROCESS') {
         return {
-            time: tmpNode.attributes.time.value,
-            pid: tmpNode.attributes.pid.value,
-            content: tmpNode.attributes.childPid.value,
+            time: Object(_timeUtils__WEBPACK_IMPORTED_MODULE_0__["humanReadableTime"])(node.attributes.time.value),
+            pid: node.attributes.pid.value,
+            eventType: "New process",
+            childPid: node.attributes.childPid.value,
         };
     }
-    if (tmpNode.nodeName === 'RETURNVALUE') {
+    if (node.nodeName === 'RETURNVALUE') {
         return {
-            time: tmpNode.attributes.time.value,
-            pid: tmpNode.attributes.pid.value,
-            content: tmpNode.attributes.value.value.toString(),
+            time: Object(_timeUtils__WEBPACK_IMPORTED_MODULE_0__["humanReadableTime"])(node.attributes.time.value),
+            pid: node.attributes.pid.value,
+            eventType: "Process finished",
+            returnValue: node.attributes.value.value,
         };
     }
     return undefined;
+}
+
+
+/***/ }),
+/* 32 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "humanReadableTime", function() { return humanReadableTime; });
+function humanReadableTime(timestamp) {
+    var date = new Date(timestamp / 1000);
+    var hours = "00" + date.getHours();
+    var minutes = "00" + date.getMinutes();
+    var seconds = "00" + date.getSeconds();
+    return hours.substr(-2) + ":" + minutes.substr(-2) + ":" + seconds.substr(-2);
+}
+
+
+/***/ }),
+/* 33 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Input", function() { return Input; });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+
+function Input() {
+    var _a = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(""), input = _a[0], setInput = _a[1];
+    function handleChange(event) {
+        setInput(event.target.value);
+    }
+    return (react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null,
+        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("label", null, "Enter value : "),
+        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("textarea", { value: input, onChange: handleChange })));
 }
 
 

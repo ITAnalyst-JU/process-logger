@@ -1,7 +1,8 @@
-import React, {useLayoutEffect, useState} from 'react';
+import React, {useLayoutEffect, useRef, useState} from 'react';
 import {LogTable} from "./LogTable";
 import {ParseEvent, TableColumn} from "./types";
-import {parseEvents} from "./EventsParser";
+import {DataNode, parseEvent, parseEvents} from "./eventsParser";
+import {Input} from "./Input";
 
 export default function App() {
 
@@ -12,7 +13,6 @@ export default function App() {
         function on_socket_message(event: any) {
             //TODO: Take into account html
             const JSONData = JSON.parse(event.data);
-            // TODO: Parse this in more civilized way?
             let newNode = {
                 attributes: {},
                 nodeName: JSONData.type,
@@ -20,12 +20,7 @@ export default function App() {
             };
             // @ts-ignore
             JSONData.attributes.forEach((attr: unknown) => newNode.attributes[attr.name] = {"value": attr.value});
-            setData(data.concat({
-                time: 420,
-                pid: 24,
-                content: newNode.toString(),
-            }))
-            setData(data.concat(parseEvents(document.getElementById('data'))))
+            setData([...dataRef.current, parseEvent(newNode as DataNode)!])
         }
 
         function on_socket_close(event: any) {
@@ -48,20 +43,29 @@ export default function App() {
         if (wss_port) initialize_websocket_connection()
     })
 
+    window.onload = () => {
+        setStartMarker(true);
+    }
 
-    const [data, setData] = useState<ParseEvent[]>([]);
+    const [data, _setData] = useState<ParseEvent[]>([]);
+    const dataRef = useRef(data);const setData = (newData: ParseEvent[]): void => {
+        dataRef.current = newData;
+        _setData(newData);
+    }
+    const [startMarker, setStartMarker] = useState<boolean>(false);
 
     useLayoutEffect(() => {
-        setData(data.concat(parseEvents(document.getElementById('data'))));
-    }, [])
+        console.log(document);
+        setData(parseEvents(document.getElementById('data')));
+    }, [startMarker]);
 
-    const auxData = [
-        {time: 123, pid: 1234, content: "ala ma kota"},
-        {time: 1213, pid: 12234, content: "ala ma kota1"},
-    ]
-
-    return <LogTable
-        selectedColumns={[TableColumn.Time, TableColumn.Pid, TableColumn.Content]}
-        data={data}
-    />
+    return (
+        <div>
+            <Input/>
+            <LogTable
+                selectedColumns={[TableColumn.Time, TableColumn.Pid, TableColumn.Content, TableColumn.ChildPid, TableColumn.EventType, TableColumn.FileDescriptor, TableColumn.ReturnValue]}
+                data={data}
+            />
+        </div>
+    )
 }
