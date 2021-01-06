@@ -1,10 +1,15 @@
 import React, { useState } from "react";
 
-export function Input() {
+interface Props {
+  updateFilter: (input: string) => void;
+}
+
+export function Input(props: Props) {
   const [input, setInput] = useState<string>("");
 
   function handleChange(event: any) {
     setInput(event.target.value);
+    props.updateFilter(input);
   }
 
   return (

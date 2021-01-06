@@ -1,6 +1,6 @@
-import React, {useLayoutEffect, useRef, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {LogTable} from "./LogTable";
-import {ParseEvent, TableColumn} from "./types";
+import {ParseEvent, RowPredicate, TableColumn, TruePredicate} from "./types";
 import {DataNode, parseEvent, parseEvents} from "./eventsParser";
 import {Input} from "./Input";
 
@@ -53,18 +53,28 @@ export default function App() {
         _setData(newData);
     }
     const [startMarker, setStartMarker] = useState<boolean>(false);
+    // TODO: There is something wrong with this initial state, maybe someone knows react/ts better and can say why filter === true now...
+    const [filter, setFilter] = useState<RowPredicate>(TruePredicate);
 
     useLayoutEffect(() => {
-        console.log(document);
         setData(parseEvents(document.getElementById('data')));
     }, [startMarker]);
 
+    function updateFilter(input: string): void {
+        // TODO: pass input to parser and get result
+        const result = () => true;
+        setFilter(result);
+    }
+
     return (
         <div>
-            <Input/>
+            <Input
+                updateFilter={updateFilter}
+            />
             <LogTable
                 selectedColumns={[TableColumn.Time, TableColumn.Pid, TableColumn.Content, TableColumn.ChildPid, TableColumn.EventType, TableColumn.FileDescriptor, TableColumn.ReturnValue]}
                 data={data}
+                filter={filter}
             />
         </div>
     )
