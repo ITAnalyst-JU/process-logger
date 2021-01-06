@@ -1,11 +1,11 @@
 export interface ParseEvent {
-  time: number;
+  time: string;
   pid: number;
-  content: string;
+  eventType: string;
 }
 
 export interface ParseOutputLine extends ParseEvent {
-  fileDescriptor: number;
+  fd: number;
   content: string;
 }
 
@@ -14,7 +14,7 @@ export interface ParseSubprocess extends ParseEvent {
 }
 
 export interface ParseReturnValue extends ParseEvent {
-  value: number;
+  returnValue: number;
   // TODO: Maybe enum?
   signalName: string;
 }
@@ -23,6 +23,11 @@ export enum TableColumn {
   Time,
   Pid,
   Content,
+  EventType,
+  FileDescriptor,
+  ChildPid,
+  SignalName,
+  ReturnValue
   // TODO: Add all possible.
 }
 
@@ -34,5 +39,10 @@ export interface ColumnInfo {
 export const columnsInfo: Map<TableColumn, ColumnInfo> = new Map([
   [TableColumn.Time, { label: "Time", key: "time" }],
   [TableColumn.Pid, { label: "Process ID", key: "pid" }],
-  [TableColumn.Content, { label: "Output/Result", key: "content" }],
+  [TableColumn.Content, { label: "Output", key: "content" }],
+  [TableColumn.EventType, { label: "Event", key: "eventType" }],
+  [TableColumn.FileDescriptor, { label: "Output fd", key: "fd" }],
+  [TableColumn.ChildPid, { label: "New process PID", key: "childPid" }],
+  [TableColumn.SignalName, { label: "Signal Name", key: "signalName" }],
+  [TableColumn.ReturnValue, { label: "Return Value", key: "returnValue" }],
 ]);
