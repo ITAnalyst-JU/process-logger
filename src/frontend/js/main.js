@@ -28630,13 +28630,18 @@ function App() {
         _setData(newData);
     };
     var _b = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(false), startMarker = _b[0], setStartMarker = _b[1];
+    var _c = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(_types__WEBPACK_IMPORTED_MODULE_2__["TruePredicate"]), filter = _c[0], setFilter = _c[1];
     Object(react__WEBPACK_IMPORTED_MODULE_0__["useLayoutEffect"])(function () {
-        console.log(document);
         setData(Object(_eventsParser__WEBPACK_IMPORTED_MODULE_3__["parseEvents"])(document.getElementById('data')));
     }, [startMarker]);
+    function updateFilter(input) {
+        // TODO: pass input to parser and get result
+        var result = function () { return true; };
+        setFilter(result);
+    }
     return (react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null,
-        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_Input__WEBPACK_IMPORTED_MODULE_4__["Input"], null),
-        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_LogTable__WEBPACK_IMPORTED_MODULE_1__["LogTable"], { selectedColumns: [_types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].Time, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].Pid, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].Content, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].ChildPid, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].EventType, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].FileDescriptor, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].ReturnValue], data: data })));
+        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_Input__WEBPACK_IMPORTED_MODULE_4__["Input"], { updateFilter: updateFilter }),
+        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_LogTable__WEBPACK_IMPORTED_MODULE_1__["LogTable"], { selectedColumns: [_types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].Time, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].Pid, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].Content, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].ChildPid, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].EventType, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].FileDescriptor, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].ReturnValue], data: data, filter: _types__WEBPACK_IMPORTED_MODULE_2__["TruePredicate"] })));
 }
 
 
@@ -28657,9 +28662,14 @@ __webpack_require__.r(__webpack_exports__);
 
 function LogTable(props) {
     var columns = props.selectedColumns.map(function (column) { return _types__WEBPACK_IMPORTED_MODULE_2__["columnsInfo"].get(column); });
-    console.log("render TABLE");
-    console.log(props.data);
-    return (react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(reactable__WEBPACK_IMPORTED_MODULE_1__["Table"], { data: props.data, columns: columns }));
+    var filteredData = props.data;
+    try {
+        filteredData = props.data.filter(function (record) { return props.filter(record); });
+    }
+    catch (e) {
+        console.log("Something wrong with the predicate.");
+    }
+    return (react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(reactable__WEBPACK_IMPORTED_MODULE_1__["Table"], { data: filteredData, columns: columns }));
 }
 
 
@@ -30346,8 +30356,10 @@ exports.Sort = Sort;
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "TruePredicate", function() { return TruePredicate; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "TableColumn", function() { return TableColumn; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "columnsInfo", function() { return columnsInfo; });
+var TruePredicate = function (parseEvent) { return true; };
 var TableColumn;
 (function (TableColumn) {
     TableColumn[TableColumn["Time"] = 0] = "Time";
@@ -30451,10 +30463,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 
-function Input() {
+function Input(props) {
     var _a = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(""), input = _a[0], setInput = _a[1];
     function handleChange(event) {
         setInput(event.target.value);
+        props.updateFilter(input);
     }
     return (react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null,
         react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("label", null, "Enter value : "),

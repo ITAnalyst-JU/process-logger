@@ -19,6 +19,9 @@ export interface ParseReturnValue extends ParseEvent {
   signalName: string;
 }
 
+export type RowPredicate = (parseEvent: ParseEvent) => boolean;
+export const TruePredicate: RowPredicate = (parseEvent: ParseEvent) => true;
+
 export enum TableColumn {
   Time,
   Pid,
