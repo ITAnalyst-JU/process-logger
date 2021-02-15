@@ -150,7 +150,7 @@ describe('basic types', function(){
     assert.ok(b[1].toString() == "")  
     
     var c = Parser.parse(Parser.timeLiteral, new Parser.StringView('5ms 3 us'))[0]
-    console.log(c) //TODO poprawic ms traktuje jak m i konczy parsowanie
+    console.log(c) // TODO poprawic ms traktuje jak m i konczy parsowanie -- czy już naprawione?
     assert.ok(c[0].toMicroseconds() == 5003)
     assert.ok(c[1].toString() == "") 
 

@@ -312,12 +312,13 @@ export class RelativeTime {
   }
 }
 
-export let days         = bind(nonnegative, n => bind(token(string_('d')),  _ => return_(new RelativeTime(true, n))))
-export let hours        = bind(nonnegative, n => bind(token(string_('h')),  _ => return_(new RelativeTime(true, 0, n))))
-export let minutes      = bind(nonnegative, n => bind(token(string_('m')),  _ => return_(new RelativeTime(true, 0, 0, n))))
-export let seconds      = bind(nonnegative, n => bind(token(string_('s')),  _ => return_(new RelativeTime(true, 0, 0, 0, n))))
-export let milliseconds = bind(nonnegative, n => bind(token(string_('ms')), _ => return_(new RelativeTime(true, 0, 0, 0, 0, n))))
+// XXX 'ms' must be before 'm'
 export let microseconds = bind(nonnegative, n => bind(token(string_('us')), _ => return_(new RelativeTime(true, 0, 0, 0, 0, 0, n))))
+export let milliseconds = bind(nonnegative, n => bind(token(string_('ms')), _ => return_(new RelativeTime(true, 0, 0, 0, 0, n))))
+export let seconds      = bind(nonnegative, n => bind(token(string_('s')),  _ => return_(new RelativeTime(true, 0, 0, 0, n))))
+export let minutes      = bind(nonnegative, n => bind(token(string_('m')),  _ => return_(new RelativeTime(true, 0, 0, n))))
+export let hours        = bind(nonnegative, n => bind(token(string_('h')),  _ => return_(new RelativeTime(true, 0, n))))
+export let days         = bind(nonnegative, n => bind(token(string_('d')),  _ => return_(new RelativeTime(true, n))))
 
 export function all<A>(pred: (_:A)=>boolean, xs: A[]): boolean {
   for (let i in xs) {
