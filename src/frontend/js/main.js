@@ -28630,6 +28630,7 @@ function App() {
         _setData(newData);
     };
     var _b = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(false), startMarker = _b[0], setStartMarker = _b[1];
+    // TODO: There is something wrong with this initial state, maybe someone knows react/ts better and can say why filter === true now...
     var _c = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(_types__WEBPACK_IMPORTED_MODULE_2__["TruePredicate"]), filter = _c[0], setFilter = _c[1];
     Object(react__WEBPACK_IMPORTED_MODULE_0__["useLayoutEffect"])(function () {
         setData(Object(_eventsParser__WEBPACK_IMPORTED_MODULE_3__["parseEvents"])(document.getElementById('data')));
@@ -28641,7 +28642,7 @@ function App() {
     }
     return (react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null,
         react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_Input__WEBPACK_IMPORTED_MODULE_4__["Input"], { updateFilter: updateFilter }),
-        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_LogTable__WEBPACK_IMPORTED_MODULE_1__["LogTable"], { selectedColumns: [_types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].Time, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].Pid, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].Content, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].ChildPid, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].EventType, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].FileDescriptor, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].ReturnValue], data: data, filter: _types__WEBPACK_IMPORTED_MODULE_2__["TruePredicate"] })));
+        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_LogTable__WEBPACK_IMPORTED_MODULE_1__["LogTable"], { selectedColumns: [_types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].Time, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].Pid, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].Content, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].ChildPid, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].EventType, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].FileDescriptor, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].ReturnValue], data: data, filter: filter })));
 }
 
 

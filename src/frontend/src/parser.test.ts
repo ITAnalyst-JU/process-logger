@@ -1,15 +1,9 @@
-//instalacja pakietu do testow 
-//sudo npm i --save-dev @types/mocha 
-//sudo apt install mocha
-// kompilacja `tsc -t es5 --strictNullChecks test.ts` a potem odpalanie odpalanie przez `mocha` z folderu parser 
-
-
 import {Parser} from "./parser";
 
 
 export function printNode(n: { type_: Parser.Type }, useIndent=false, firstInvocation=true, indent=0) {
     // XXX process.stdout.write works only in node, not browsers' JS
-  
+
     if (Parser.any(x => x === n.type_, [Parser.Type.Or, Parser.Type.And, Parser.Type.Exp, Parser.Type.Add, Parser.Type.Sub, Parser.Type.Mul, Parser.Type.Div,
         Parser.Type.Match, Parser.Type.Eq, Parser.Type.Lt, Parser.Type.Leq, Parser.Type.Gt, Parser.Type.Geq])) {
       process.stdout.write('(' + n.type_ + ' ')
@@ -48,23 +42,20 @@ export function printNode(n: { type_: Parser.Type }, useIndent=false, firstInvoc
   }
 
 
-var assert = require('assert');
-
-
 describe('StringViev + item + pure', function(){
   it('Empty', function(){
-    var a = Parser.parse(Parser.item, new Parser.StringView(""))
-    assert.ok(a.length== 0)
+    const a = Parser.parse(Parser.item, new Parser.StringView(""))
+    expect(a).toHaveLength(0);
   })
   it('item', function() {
-    var b = Parser.parse(Parser.item, new Parser.StringView("abc"))[0]
-    assert.ok(b[0] == 'a')
-    assert.ok(b[1].toString() == "bc")
+    const b = Parser.parse(Parser.item, new Parser.StringView("abc"))[0]
+    expect(b[0]).toEqual('a');
+    expect(b[1].toString()).toEqual('bc');
   })
   it('pure', function() {
-    var b = Parser.parse(Parser.pure(1), new Parser.StringView("abc"))[0]
-    assert.ok(b[0] == 1)
-    assert.ok(b[1].toString() == "abc")
+    const b = Parser.parse(Parser.pure(1), new Parser.StringView("abc"))[0]
+    expect(b[0]).toEqual('a');
+    expect(b[1].toString()).toEqual('abc');
   })
 })
 
@@ -76,87 +67,87 @@ describe('curry + bind + alternative', function(){
     let a = Parser.parse(z, new Parser.StringView("abcd"))[0]
     let b = Parser.parse(z, new Parser.StringView("ad"))
     //console.log(a[0]) //tu jest problem z typemi, nie rozumiem lift wiec nwm czy to problem
-    assert.ok(a[1].toString() == "d")
-    assert.ok(b.length == 0)
+    expect(a[1].toString()).toEqual('d');
+    expect(b).toHaveLength(0);
   })
   it('bind', function() {
         let three = Parser.bind(Parser.item, a => Parser.bind(
           Parser.item, _ => Parser.bind(
           Parser.item, c => Parser.pure([a,c]))))
     let c = Parser.parse(three, new Parser.StringView("abcde"))[0]
-    assert.ok(c[0][0]=='a' && c[0][1]=='c')
-    assert.ok(c[1].toString() == "de")
+    expect(c[0][0]=='a' && c[0][1]=='c').toBeTruthy();
+    expect(c[1].toString()).toEqual('de');
   })
   it('alternative', function() {
-    var a = Parser.parse(Parser.alternative(Parser.empty, Parser.pure('d')), new Parser.StringView("abc"))[0]
-    assert.ok(a[0] == "d")
-    assert.ok(a[1].toString() == "abc")
+    const a = Parser.parse(Parser.alternative(Parser.empty, Parser.pure('d')), new Parser.StringView("abc"))[0]
+    expect(a[0]).toEqual('d');
+    expect(a[1].toString()).toEqual('abc');
 
-    var b = Parser.parse(Parser.alternative(Parser.pure('d'), Parser.empty), new Parser.StringView("abc"))[0]
-    assert.ok(b[0] == "d")
-    assert.ok(b[1].toString() == "abc")    
+    const b = Parser.parse(Parser.alternative(Parser.pure('d'), Parser.empty), new Parser.StringView("abc"))[0]
+    expect(b[0]).toEqual('d');
+    expect(b[1].toString()).toEqual('abc');
   })
 })
 
 
 describe('basic types', function(){
   it('string_ + number literals', function(){
-    var a = Parser.parse(Parser.string_("ala"), new Parser.StringView("ala ma kota"))[0]
-    assert.ok(a[0] == "ala")
-    assert.ok(a[1].toString() == " ma kota")
+    const a = Parser.parse(Parser.string_("ala"), new Parser.StringView("ala ma kota"))[0]
+    expect(a[0]).toEqual('ala');
+    expect(a[1].toString()).toEqual(' ma kota');
 
-    var b = Parser.parse(Parser.binaryLiteral, new Parser.StringView("0b10101 + 10"))[0]
-    assert.ok(b[0] == 0b10101)
-    assert.ok(b[1].toString() == "+ 10")
+    const b = Parser.parse(Parser.binaryLiteral, new Parser.StringView("0b10101 + 10"))[0]
+    expect(b[0]).toEqual(0b10101);
+    expect(b[1].toString()).toEqual("+ 10");
 
-    var c = Parser.parse(Parser.hexLiteral, new Parser.StringView("0xab31      + 10"))[0]
-    assert.ok(c[0] == 0xab31)
-    assert.ok(c[1].toString() == "+ 10")
+    const c = Parser.parse(Parser.hexLiteral, new Parser.StringView("0xab31      + 10"))[0]
+    expect(c[0]).toEqual(0xab31);
+    expect(c[1].toString()).toEqual("+ 10");
 
-    var d = Parser.parse(Parser.hexLiteral, new Parser.StringView('- 0xf'))[0]
-    assert.ok(d[0] == -0xf)
-    assert.ok(d[1].toString() == "")
+    const d = Parser.parse(Parser.hexLiteral, new Parser.StringView('- 0xf'))[0]
+    expect(d[0]).toEqual(-0xf);
+    expect(d[1].toString()).toEqual("");
   })
   it('digits', function() {
-    var a = Parser.parse(Parser.binaryDigit, new Parser.StringView("abc"))
-    assert.ok(a.length == 0)
+    const a = Parser.parse(Parser.binaryDigit, new Parser.StringView("abc"))
+    expect(a).toHaveLength(0);
 
-    var b = Parser.parse(Parser.some(Parser.binaryDigit), new Parser.StringView("01"))[0]
-    assert.ok(b[0][0] == '0' && b[0][1] == '1')
-    assert.ok(b[1].toString() == "")
+    const b = Parser.parse(Parser.some(Parser.binaryDigit), new Parser.StringView("01"))[0]
+    expect(b[0][0] == '0' && b[0][1] == '1').toBeTruthy();
+    expect(b[1].toString()).toEqual("");
 
-    var c = Parser.parse(Parser.binaryDigit, new Parser.StringView("0x"))[0]
-    assert.ok(c[0] == "0")
-    assert.ok(c[1].toString() == "x")
+    const c = Parser.parse(Parser.binaryDigit, new Parser.StringView("0x"))[0]
+    expect(c[0]).toEqual("0");
+    expect(c[1].toString()).toEqual("x");
 
   })
   it('symbol', function() {
-    var a = Parser.parse(Parser.symbol, new Parser.StringView('new_Name10= 10'))[0]
-    assert.ok(a[0] == "new_Name10")
-    assert.ok(a[1].toString() == "= 10")
+    const a = Parser.parse(Parser.symbol, new Parser.StringView('new_Name10= 10'))[0]
+    expect(a[0]).toEqual('new_Name10');
+    expect(a[1].toString()).toEqual('= 10');
 
-    var b = Parser.parse(Parser.dottedSymbol, new Parser.StringView('camelCase.c_style.a2    = 10'))[0]
-    assert.ok(b[0][0] == "camelCase" && b[0][1] =="c_style" && b[0][2] == "a2")
-    assert.ok(b[1].toString() == "= 10")    
+    const b = Parser.parse(Parser.dottedSymbol, new Parser.StringView('camelCase.c_style.a2    = 10'))[0]
+    expect(b[0][0] == "camelCase" && b[0][1] =="c_style" && b[0][2] == "a2").toBeTruthy();
+    expect(b[1].toString()).toEqual('= 10');
   })
 
   it('boolenLiteral + timeLiteral', function() {
-    var a = Parser.parse(Parser.booleanLiteral, new Parser.StringView('true'))[0]
-    assert.ok(a[0] == true)
-    assert.ok(a[1].toString() == "")
+    const a = Parser.parse(Parser.booleanLiteral, new Parser.StringView('true'))[0]
+    expect(a[0]).toBeTruthy();
+    expect(a[1].toString()).toEqual('');
 
-    var b = Parser.parse(Parser.booleanLiteral, new Parser.StringView('#t'))[0]
-    assert.ok(b[0] == true)
-    assert.ok(b[1].toString() == "")  
-    
-    var c = Parser.parse(Parser.timeLiteral, new Parser.StringView('5ms 3 us'))[0]
+    const b = Parser.parse(Parser.booleanLiteral, new Parser.StringView('#t'))[0]
+    expect(b[0]).toBeTruthy();
+    expect(b[1].toString()).toEqual("");
+
+    const c = Parser.parse(Parser.timeLiteral, new Parser.StringView('5ms 3 us'))[0]
     console.log(c) //TODO poprawic ms traktuje jak m i konczy parsowanie
-    assert.ok(c[0].toMicroseconds() == 5003)
-    assert.ok(c[1].toString() == "") 
+    expect(c[0].toMicroseconds()).toEqual(5003);
+    expect(c[1].toString()).toEqual("");
 
-    var d = Parser.parse(Parser.timeLiteral, new Parser.StringView('-3 us'))[0]
-    assert.ok(d[0].toMicroseconds() ==-3)
-    assert.ok(d[1].toString() == "")
+    const d = Parser.parse(Parser.timeLiteral, new Parser.StringView('-3 us'))[0]
+    expect(d[0].toMicroseconds()).toEqual(-3);
+    expect(d[1].toString()).toEqual("");
   })
 })
 
