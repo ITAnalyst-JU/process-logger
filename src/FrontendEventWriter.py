@@ -14,13 +14,13 @@ class FrontendEventWriter(EventWriter):
 
         included_css_files = ''.join(
                 f'  <style>\n{open(css_fname).read()}  </style>\n'
-                for css_fname in glob.glob('./frontend/css/*.css'))
+                for css_fname in glob.glob(f'{os.path.dirname(__file__)}/frontend/css/*.css'))
         included_js_files = ''.join(
                 f'  <script>\n{open(js_fname).read()}  </script>\n'
-                for js_fname in glob.glob('./frontend/js/*.js'))
+                for js_fname in glob.glob(f'{os.path.dirname(__file__)}/frontend/js/*.js'))
 
         # TODO depending on frontend choices, this parametrization might change
-        index_html_formatted = open('./frontend/index.html').read().format(
+        index_html_formatted = open(f'{os.path.dirname(__file__)}/frontend/index.html').read().format(
                 title=title,
                 h1_title=title,
                 included_css_files=included_css_files,
