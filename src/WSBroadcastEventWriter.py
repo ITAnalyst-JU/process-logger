@@ -1,5 +1,6 @@
 import asyncio
 import websockets
+from socket import AddressFamily
 
 from EventWriter import EventWriter
 
@@ -9,7 +10,7 @@ class WSBroadcastEventWriter(EventWriter):
         super().__init__()
         self.__clients = set()
         self.__server = asyncio.get_event_loop().run_until_complete(websockets.serve(self.__handle_new_client, '', 0, compression=None))
-        self.__port = self.__server.server.sockets[0].getsockname()[1]
+        self.__port = [s for s in self.__server.server.sockets if s.family == AddressFamily.AF_INET][0].getsockname()[1]
 
 
     def port(self):
