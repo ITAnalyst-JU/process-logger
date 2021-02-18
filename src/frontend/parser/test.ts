@@ -14,22 +14,22 @@ export function printNode(n: { type_: Parser.Type }, useIndent=false, firstInvoc
         Parser.Type.Match, Parser.Type.Eq, Parser.Type.Lt, Parser.Type.Leq, Parser.Type.Gt, Parser.Type.Geq])) {
       process.stdout.write('(' + n.type_ + ' ')
       if (useIndent) process.stdout.write('\n' + ' '.repeat(indent+2))
-      printNode((n as {type_, a}).a, useIndent, false, indent+2)
+      printNode((n as {type_: any, a: { type_: Parser.Type; }}).a, useIndent, false, indent+2)
       if (useIndent) process.stdout.write('\n' + ' '.repeat(indent+2))
       else process.stdout.write(' ')
-      printNode((n as {type_, b}).b, useIndent, false, indent+2)
+      printNode((n as {type_: any, b: { type_: Parser.Type; }}).b, useIndent, false, indent+2)
       process.stdout.write(')')
     } else if (Parser.any(x => x === n.type_, [Parser.Type.Not, Parser.Type.Parens])) {
       process.stdout.write('(' + n.type_ + ' ')
       if (useIndent) process.stdout.write('\n' + ' '.repeat(indent+2))
-      printNode((n as {type_, e}).e, useIndent, false, indent+2)
+      printNode((n as {type_: any, e: { type_: Parser.Type; }}).e, useIndent, false, indent+2)
       process.stdout.write(')')
     } else if (Parser.any(x => x === n.type_, [Parser.Type.NumberLiteral, Parser.Type.BooleanLiteral])) {
-      process.stdout.write(`${(n as {type_, e}).e}`)
+      process.stdout.write(`${(n as {type_: any, e: any}).e}`)
     } else if (n.type_ == Parser.Type.DottedSymbolLiteral) {
-      process.stdout.write(`#${(n as {type_, e}).e.join('.')}`)
+      process.stdout.write(`#${(n as {type_: any, e: any[]}).e.join('.')}`)
     } else if (n.type_ == Parser.Type.FunctionCall) {
-      let n1 = n as {type_, name: Parser.DottedSymbolLiteral, args}
+      let n1 = n as {type_: any, name: Parser.DottedSymbolLiteral, args: { [x: string]: { type_: Parser.Type; }; }}
       process.stdout.write('(' + n.type_ + ' ' + `#${n1.name.e.join('.')}`)
       for (let i in n1.args) {
         if (useIndent) process.stdout.write('\n' + ' '.repeat(indent+2))
@@ -71,7 +71,7 @@ describe('StringViev + item + pure', function(){
 
 describe('curry + bind + alternative', function(){
   it('curry', function(){
-    let selectFirstAndThird = Parser.curry((a,b,c) => [a,c])
+    let selectFirstAndThird = Parser.curry((a: any,b: any,c: any) => [a,c])
     let z = Parser.liftA2(Parser.liftA2(Parser.liftA2(Parser.pure(selectFirstAndThird), Parser.item), Parser.item), Parser.item)
     let a = Parser.parse(z, new Parser.StringView("abcd"))[0]
     let b = Parser.parse(z, new Parser.StringView("ad"))

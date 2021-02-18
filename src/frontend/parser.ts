@@ -71,18 +71,21 @@ class StringView {
   }
 }
 
+// @ts-ignore
 function curry(f) {
+  // @ts-ignore
   return function recur() {
     const args = Array.prototype.slice.call(arguments);
     return args.length >= f.length ?
       f.apply(null, args) :
+      // @ts-ignore
       recur.bind(null, ...args)
   }
 }
 
 function assert(c: true, s?: string): void;
 function assert(c: false, s?: string): never;
-function assert(c, s?: string)  {
+function assert(c: any, s?: string)  {
   if (s) {
     if (!c) throw 'Assertion error: ' + s
   } else {
@@ -215,7 +218,7 @@ function sat(pred: (_:string)=>boolean): Parser<string> {
 
 let digit = sat(c => /^[0-9]$/.test(c))
 let nonzeroDigit = sat(c => /^[1-9]$/.test(c))
-let char = c => sat(c1 => c === c1)
+let char = (c: string) => sat(c1 => c === c1)
 let letter = sat(c => /^[a-zA-Z]$/.test(c))
 let symbolFirstChar = alternative(letter, char('_'))
 let symbolOtherChar = alternative(symbolFirstChar, digit)
@@ -284,6 +287,8 @@ class RelativeTime {
               public days: number = 0, public hours: number = 0, public minutes: number = 0,
               public seconds: number = 0, public milliseconds: number = 0, public microseconds: number = 0) {
   }
+
+  [key: string]: any;
 
   toMicroseconds(): number {
     return (this.microseconds + 10**3 * this.milliseconds + 10**6 * this.seconds +
@@ -362,22 +367,22 @@ function printNode(n: { type_: Type }, useIndent=false, firstInvocation=true, in
                                Type.Match, Type.Eq, Type.Lt, Type.Leq, Type.Gt, Type.Geq])) {
     process.stdout.write('(' + n.type_ + ' ')
     if (useIndent) process.stdout.write('\n' + ' '.repeat(indent+2))
-    printNode((n as {type_, a}).a, useIndent, false, indent+2)
+    printNode((n as {type_: any, a: { type_: Type }}).a, useIndent, false, indent+2)
     if (useIndent) process.stdout.write('\n' + ' '.repeat(indent+2))
     else process.stdout.write(' ')
-    printNode((n as {type_, b}).b, useIndent, false, indent+2)
+    printNode((n as {type_: any, b: { type_: Type }}).b, useIndent, false, indent+2)
     process.stdout.write(')')
   } else if (any(x => x === n.type_, [Type.Not, Type.Parens])) {
     process.stdout.write('(' + n.type_ + ' ')
     if (useIndent) process.stdout.write('\n' + ' '.repeat(indent+2))
-    printNode((n as {type_, e}).e, useIndent, false, indent+2)
+    printNode((n as {type_: any, e: { type_: Type }}).e, useIndent, false, indent+2)
     process.stdout.write(')')
   } else if (any(x => x === n.type_, [Type.NumberLiteral, Type.BooleanLiteral])) {
-    process.stdout.write(`${(n as {type_, e}).e}`)
+    process.stdout.write(`${(n as {type_: any, e: any}).e}`)
   } else if (n.type_ == Type.DottedSymbolLiteral) {
-    process.stdout.write(`#${(n as {type_, e}).e.join('.')}`)
+    process.stdout.write(`#${(n as {type_: any, e: any[]}).e.join('.')}`)
   } else if (n.type_ == Type.FunctionCall) {
-    let n1 = n as {type_, name: DottedSymbolLiteral, args}
+    let n1 = n as {type_: any, name: DottedSymbolLiteral, args: { [x: string]: { type_: Type } }}
     process.stdout.write('(' + n.type_ + ' ' + `#${n1.name.e.join('.')}`)
     for (let i in n1.args) {
       if (useIndent) process.stdout.write('\n' + ' '.repeat(indent+2))
@@ -521,7 +526,7 @@ console.log(parse(item, new StringView("")))
 console.log(parse(item, new StringView("abc")))
 console.log(parse(pure(1), new StringView("abc")))
 
-let selectFirstAndThird = curry((a,b,c) => [a,c])
+let selectFirstAndThird = curry((a: StringView,b: StringView,c: StringView) => [a,c])
 let z = liftA2(liftA2(liftA2(pure(selectFirstAndThird), item), item), item)
 console.log(parse(z, new StringView("abcd")))
 console.log(parse(z, new StringView("ad")))

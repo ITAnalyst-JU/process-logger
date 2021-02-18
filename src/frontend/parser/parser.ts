@@ -72,18 +72,21 @@ export class StringView {
   }
 }
 
+// @ts-ignore
 export function curry(f) {
+  // @ts-ignore
   return function recur() {
     const args = Array.prototype.slice.call(arguments);
     return args.length >= f.length ?
       f.apply(null, args) :
+      // @ts-ignore
       recur.bind(null, ...args)
   }
 }
 
 export function assert(c: true, s?: string): void;
 export function assert(c: false, s?: string): never;
-export function assert(c, s?: string)  {
+export function assert(c: any, s?: string)  {
   if (s) {
     if (!c) throw 'Assertion error: ' + s
   } else {
@@ -216,7 +219,7 @@ export function sat(pred: (_:string)=>boolean): Parser<string> {
 
 export let digit = sat(c => /^[0-9]$/.test(c))
 export let nonzeroDigit = sat(c => /^[1-9]$/.test(c))
-export let char = c => sat(c1 => c === c1)
+export let char = (c: string) => sat(c1 => c === c1)
 export let letter = sat(c => /^[a-zA-Z]$/.test(c))
 export let symbolFirstChar = alternative(letter, char('_'))
 export let symbolOtherChar = alternative(symbolFirstChar, digit)
@@ -285,6 +288,8 @@ export class RelativeTime {
               public days: number = 0, public hours: number = 0, public minutes: number = 0,
               public seconds: number = 0, public milliseconds: number = 0, public microseconds: number = 0) {
   }
+
+  [key: string]: any;
 
   toMicroseconds(): number {
     var sign = 1
