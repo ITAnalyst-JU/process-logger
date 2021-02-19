@@ -28610,7 +28610,7 @@ function App() {
             // @ts-ignore
             '' + wss_port;
             // @ts-ignore
-            socket = new WebSocket("ws://localhost:" + wss_port);
+            socket = new WebSocket("ws://" + wss_ipv4 + ":" + wss_port);
             socket.onmessage = on_socket_message;
             socket.onclose = on_socket_close;
         }
