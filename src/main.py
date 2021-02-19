@@ -1,3 +1,5 @@
+#!/bin/python
+
 import time
 import argparse
 
