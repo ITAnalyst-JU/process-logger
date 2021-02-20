@@ -7,7 +7,7 @@ import {Input} from "./Input";
 export default function App() {
 
     window.addEventListener('load', () => {
-        let socket = null
+        let socket: WebSocket | null  = null
 
         // TODO: Typing
         function on_socket_message(event: any) {
@@ -18,6 +18,9 @@ export default function App() {
                 nodeName: JSONData.type,
                 innerText: JSONData.content
             };
+            if (newNode.nodeName === 'PLEASE_RESTART') {
+                window.location = window.location;
+            }
             // @ts-ignore
             JSONData.attributes.forEach((attr: unknown) => newNode.attributes[attr.name] = {"value": attr.value});
             setData([...dataRef.current, parseEvent(newNode as DataNode)!])
@@ -35,6 +38,17 @@ export default function App() {
             socket = new WebSocket(`ws://${wss_ipv4}:${wss_port}`)
             socket.onmessage = on_socket_message
             socket.onclose = on_socket_close
+            socket.onopen = (open_event) => {
+                let logsSavedToTheHTMLFile = document.querySelectorAll('Data > *');
+                let numberOfElements = logsSavedToTheHTMLFile.length;
+                let numberToSend: BigInt;
+                if (numberOfElements === 0) {
+                    numberToSend = BigInt('0');
+                } else {
+                    numberToSend = BigInt( logsSavedToTheHTMLFile[numberOfElements-1].getAttribute('ord') );
+                }
+                socket!.send(numberToSend.toString() + '$');
+            }
         }
 
         // @ts-ignore

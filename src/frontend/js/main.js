@@ -28598,6 +28598,9 @@ function App() {
                 nodeName: JSONData.type,
                 innerText: JSONData.content
             };
+            if (newNode.nodeName === 'PLEASE_RESTART') {
+                window.location = window.location;
+            }
             // @ts-ignore
             JSONData.attributes.forEach(function (attr) { return newNode.attributes[attr.name] = { "value": attr.value }; });
             setData(__spreadArrays(dataRef.current, [Object(_eventsParser__WEBPACK_IMPORTED_MODULE_3__["parseEvent"])(newNode)]));
@@ -28613,6 +28616,18 @@ function App() {
             socket = new WebSocket("ws://" + wss_ipv4 + ":" + wss_port);
             socket.onmessage = on_socket_message;
             socket.onclose = on_socket_close;
+            socket.onopen = function (open_event) {
+                var logsSavedToTheHTMLFile = document.querySelectorAll('Data > *');
+                var numberOfElements = logsSavedToTheHTMLFile.length;
+                var numberToSend;
+                if (numberOfElements === 0) {
+                    numberToSend = BigInt('0');
+                }
+                else {
+                    numberToSend = BigInt(logsSavedToTheHTMLFile[numberOfElements - 1].getAttribute('ord'));
+                }
+                socket.send(numberToSend.toString() + '$');
+            };
         }
         // @ts-ignore
         console.log("initialized with port " + wss_port);
