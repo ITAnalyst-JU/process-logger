@@ -54,7 +54,7 @@ describe('StringViev + item + pure', function(){
   })
   it('pure', function() {
     const b = Parser.parse(Parser.pure(1), new Parser.StringView("abc"))[0]
-    expect(b[0]).toEqual('a');
+    expect(b[0]).toEqual(1);
     expect(b[1].toString()).toEqual('abc');
   })
 })
