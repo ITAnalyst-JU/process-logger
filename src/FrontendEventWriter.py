@@ -1,6 +1,7 @@
 import os
 import re
 import glob
+import socket
 import os.path
 
 from EventWriter import EventWriter
@@ -27,6 +28,7 @@ class FrontendEventWriter(EventWriter):
                 included_js_files=included_js_files)
 
         self.__ws_port_index = index_html_formatted.index('undefined')
+        self.__ws_ipv4_index = index_html_formatted.index('        undefined')  # 17 chosen to fit ' and ' and 255.255.255.255 which is the longest possible IPv4 address
         self.__closing_tags_len = index_html_formatted[::-1].index('⚗') - len('-->\n')
         self.__closing_tags = index_html_formatted[-self.__closing_tags_len:]
 
@@ -35,6 +37,7 @@ class FrontendEventWriter(EventWriter):
         self.__f.write(index_html_formatted.encode('utf-8'))
         self.__f.flush()
         self.__write_websocket_port(ws_port)
+        self.__write_websocket_ipv4(self.__get_ipv4_address())
 
 
     def __format_nine_char_ws_port(self, ws_port_or_none):
@@ -59,6 +62,30 @@ class FrontendEventWriter(EventWriter):
         self.__f.seek(self.__ws_port_index)
         self.__f.write(ws_port_str.encode('utf-8'))
         self.__f.flush()
+
+
+    def __write_websocket_ipv4(self, ws_ipv4_string):
+        assert super().is_open()
+
+        ws_ipv4_string = ("'" + ws_ipv4_string + "'").rjust(17)  # 17 chosen to fit ' and ' and 255.255.255.255 which is the longest possible IPv4 address
+        self.__f.seek(self.__ws_ipv4_index)
+        self.__f.write(ws_ipv4_string.encode('utf-8'))
+        self.__f.flush()
+
+
+    def __get_ipv4_address(self):
+        # TODO too hacky
+        # based on https://stackoverflow.com/questions/166506/finding-local-ip-addresses-using-pythons-stdlib/28950776#28950776
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        ret_ip_address_string = ''
+        try:
+            s.connect(('10.255.255.255', 1))
+            ret_ip_address_string = s.getsockname()[0]
+        except Exception:
+            ret_ip_address_string = '127.0.0.1'
+        finally:
+            s.close()
+        return ret_ip_address_string
 
     
     def write(self, event_message_builder):

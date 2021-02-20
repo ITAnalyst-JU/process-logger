@@ -8,6 +8,7 @@ class ShortTermMemoryOfEvents:
         self.__l = 0
         self.__r = 0  # [l..r)
         self.__first_id = None
+        self.__last_id = None
         self.__data = [None] * 16
 
     def is_empty(self):
@@ -24,8 +25,14 @@ class ShortTermMemoryOfEvents:
     def first_index(self):
         return self.__first_id
 
+    def last_index(self):
+        return self.__last_id
+
     def get_from_index(self, from_id):
         assert not self.is_empty()
+
+        if from_id > self.__last_id: return []
+
         assert self.__first_id <= from_id
         assert (from_id - self.__first_id) + 1 <= len(self)
         new_l = ( self.__l + (from_id - self.__first_id) ) % len(self.__data)
@@ -88,6 +95,7 @@ class ShortTermMemoryOfEvents:
     def add_event(self, event):
         this_id = self.__next_id
         self.__next_id += 1
+        self.__last_id = this_id
 
         if self.is_empty():
             self.__first_id = this_id
