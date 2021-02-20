@@ -1,8 +1,8 @@
 #!/bin/bash
 
-trap 'echo "Be patient"' INT
+# trap 'echo "Be patient"' INT
 
-for i in {1..10}
+for i in {1..100000}
 do
   echo "Iteracja \\ #$i"
   sleep 1
