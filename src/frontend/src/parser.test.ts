@@ -140,6 +140,10 @@ describe('basic types', function(){
     expect(b[0]).toBeTruthy();
     expect(b[1].toString()).toEqual("");
 
+    const b1 = Parser.parse(Parser.timeLiteral, new Parser.StringView('5m 3 s'))[0]
+    expect(b1[0].toMicroseconds()).toEqual((5*60+3)*1000000);
+    expect(b1[1].toString()).toEqual("");
+
     const c = Parser.parse(Parser.timeLiteral, new Parser.StringView('5ms 3 us'))[0]
     console.log(c) //TODO poprawic ms traktuje jak m i konczy parsowanie
     expect(c[0].toMicroseconds()).toEqual(5003);
