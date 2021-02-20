@@ -25,7 +25,7 @@ class Invoker:
         os.mkfifo(fifo_name) 
 
         self.__parser = None 
-        self.__ws_broadcaster = WSBroadcastEventWriter()
+        self.__ws_broadcaster = WSBroadcastEventWriter(self.__ws_gap_closer_callback)
         ws_port = self.__ws_broadcaster.port()
         self.__frontend = FrontendEventWriter(log_fname, title, ws_port) # TODO title
         self.__memory = ShortTermMemoryOfEvents(10)
@@ -65,6 +65,22 @@ class Invoker:
         self.__ws_broadcaster.terminate()
         self.__frontend.terminate()
 
+    def __ws_gap_closer_callback(self, last_ord_string):
+        last_ord = int(last_ord_string)
+        if last_ord == 0:
+            if self.__memory.is_empty():
+                return []  # OK, no gap to close
+            elif self.__memory.first_index() == 1:
+                return self.__memory.get_from_index(1)  # OK, send everything
+            else:
+                return None
+        else:
+            if self.__memory.is_empty():
+                return None  # NOT OK, have no memory
+            elif self.__memory.first_index() <= last_ord+1:
+                return self.__memory.get_from_index(last_ord+1)  # OK, can close the gap
+            else:
+                return None  # NOT OK, cannot close the gap
 
     def __handle_signal(self, sig, monitored_process):
         monitored_process.send_signal(sig)

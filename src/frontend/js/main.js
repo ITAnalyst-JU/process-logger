@@ -28598,7 +28598,7 @@ function App() {
                 nodeName: JSONData.type,
                 innerText: JSONData.content
             };
-            if (newNode.nodeName === 'PLEASE_RESTART') {
+            if (newNode.nodeName === 'PleaseRestart') {
                 window.location = window.location;
             }
             // @ts-ignore
