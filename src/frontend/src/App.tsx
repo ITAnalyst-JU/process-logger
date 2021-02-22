@@ -4,8 +4,8 @@ import {ParseEvent, RowPredicate, TableColumn, TruePredicate} from "./types";
 import {DataNode, parseEvent, parseEvents} from "./eventsParser";
 import {Input} from "./Input";
 
-
-var styles = `
+//TODO: Extract to another file
+const styles = `
 @import url('https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700');
 
 $base-spacing-unit: 24px;
@@ -100,7 +100,7 @@ div{
 export default function App() {
 
 
-	var styleSheet = document.createElement("style")
+	let styleSheet = document.createElement("style")
 	styleSheet.type = "text/css"
 	styleSheet.innerText = styles
 	document.head.appendChild(styleSheet)

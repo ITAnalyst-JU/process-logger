@@ -28586,7 +28586,13 @@ var __spreadArrays = (undefined && undefined.__spreadArrays) || function () {
 
 
 
+//TODO: Extract to another file
+var styles = "\n@import url('https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700');\n\n$base-spacing-unit: 24px;\n$half-spacing-unit: $base-spacing-unit / 2;\n\n$color-alpha: #1772FF;\n$color-form-highlight: #EEEEEE;\n\n*, *:before, *:after {\n\tbox-sizing:border-box;\n}\n\nbody {\n\tpadding:$base-spacing-unit;\n\tfont-family:'Source Sans Pro', sans-serif;\n\tmargin:0;\n}\n\nh1,h2,h3,h4,h5,h6 {\n\tmargin:0;\n}\n\n.container {\n\tmax-width: 1000px;\n\tmargin-right:auto;\n\tmargin-left:auto;\n\tdisplay:flex;\n\tjustify-content:center;\n\talign-items:center;\n\tmin-height:100vh;\n}\n\n\ntable {\n\twidth:100%;\n\tborder:1px solid $color-form-highlight;\n}\n\nthead {\n\tdisplay:flex;\n\twidth:100%;\n\tbackground:#000;\n\tpadding:($half-spacing-unit * 1.5) 0;\n}\n\ntr {\n\tdisplay:flex;\n\twidth:100%;\n\tpadding:($half-spacing-unit * 1.5) 0;\n\n}\n\ntr:nth-of-type(even) {\n\t\tbackground-color: #EEEEEE;\n\t}\n\ntd, th {\n\tflex: 1 1 20%;\n\ttext-align:center;\n}\n\nth {\n\ttext-transform:uppercase;\n\tcolor:white;\n}\nlabel{\n\tfont-size: 26px;\n\tdisplay: inline;\n   \tfloat: left;\n   \ttext-align: right;\n   \tpadding: 5px 50px ;\n}\ntextarea {\n  width: 700px;\n  height: 200px;\n  border: 2px solid #000;\n  background-color: #EEEEEE;\n  font-size: 16px;\n}\n\ntextarea:focus {\n\tborder: 3px solid #000;\n\tbackground-color: #FFFFFF;\n}\n\ndiv{\n\tpadding: 7px 20px 75px 20px\n}\n\n";
 function App() {
+    var styleSheet = document.createElement("style");
+    styleSheet.type = "text/css";
+    styleSheet.innerText = styles;
+    document.head.appendChild(styleSheet);
     window.addEventListener('load', function () {
         var socket = null;
         // TODO: Typing
@@ -28676,6 +28682,8 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+// @ts-ignore
+var unsafe = reactable__WEBPACK_IMPORTED_MODULE_1__["unsafe"];
 function LogTable(props) {
     var columns = props.selectedColumns.map(function (column) { return _types__WEBPACK_IMPORTED_MODULE_2__["columnsInfo"].get(column); });
     var filteredData = props.data;
@@ -28685,6 +28693,12 @@ function LogTable(props) {
     catch (e) {
         console.log("Something wrong with the predicate.");
     }
+    filteredData.map(function (record) {
+        if (record.content) {
+            record.content = unsafe(record.content);
+        }
+        return record;
+    });
     return (react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(reactable__WEBPACK_IMPORTED_MODULE_1__["Table"], { data: filteredData, columns: columns }));
 }
 
@@ -30486,7 +30500,7 @@ function Input(props) {
         props.updateFilter(input);
     }
     return (react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null,
-        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("label", null, "Enter value : "),
+        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("label", null, "Enter value to set filters: "),
         react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("textarea", { value: input, onChange: handleChange })));
 }
 
