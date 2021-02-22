@@ -4,7 +4,107 @@ import {ParseEvent, RowPredicate, TableColumn, TruePredicate} from "./types";
 import {DataNode, parseEvent, parseEvents} from "./eventsParser";
 import {Input} from "./Input";
 
+
+var styles = `
+@import url('https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700');
+
+$base-spacing-unit: 24px;
+$half-spacing-unit: $base-spacing-unit / 2;
+
+$color-alpha: #1772FF;
+$color-form-highlight: #EEEEEE;
+
+*, *:before, *:after {
+	box-sizing:border-box;
+}
+
+body {
+	padding:$base-spacing-unit;
+	font-family:'Source Sans Pro', sans-serif;
+	margin:0;
+}
+
+h1,h2,h3,h4,h5,h6 {
+	margin:0;
+}
+
+.container {
+	max-width: 1000px;
+	margin-right:auto;
+	margin-left:auto;
+	display:flex;
+	justify-content:center;
+	align-items:center;
+	min-height:100vh;
+}
+
+
+table {
+	width:100%;
+	border:1px solid $color-form-highlight;
+}
+
+thead {
+	display:flex;
+	width:100%;
+	background:#000;
+	padding:($half-spacing-unit * 1.5) 0;
+}
+
+tr {
+	display:flex;
+	width:100%;
+	padding:($half-spacing-unit * 1.5) 0;
+
+}
+
+tr:nth-of-type(even) {
+		background-color: #EEEEEE;
+	}
+
+td, th {
+	flex: 1 1 20%;
+	text-align:center;
+}
+
+th {
+	text-transform:uppercase;
+	color:white;
+}
+label{
+	font-size: 26px;
+	display: inline;
+   	float: left;
+   	text-align: right;
+   	padding: 5px 50px ;
+}
+textarea {
+  width: 700px;
+  height: 200px;
+  border: 2px solid #000;
+  background-color: #EEEEEE;
+  font-size: 16px;
+}
+
+textarea:focus {
+	border: 3px solid #000;
+	background-color: #FFFFFF;
+}
+
+div{
+	padding: 7px 20px 75px 20px
+}
+
+`
+
 export default function App() {
+
+
+	var styleSheet = document.createElement("style")
+	styleSheet.type = "text/css"
+	styleSheet.innerText = styles
+	document.head.appendChild(styleSheet)
+	
 
     window.addEventListener('load', () => {
         let socket: WebSocket | null  = null

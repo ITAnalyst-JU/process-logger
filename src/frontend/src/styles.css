@@ -1,0 +1,18 @@
+
+.qwebirc-qui .ircwindow div { 
+    font-family: Georgia,Cambria,"Times New Roman",Times,serif;
+    margin: 26px auto 0 auto;
+    max-width: 650px;
+}
+.qwebirc-qui .lines {
+    font-size: 28px;
+    line-height: 1.58;
+    letter-spacing: -.004em;
+}
+
+.qwebirc-qui .nicklist a {
+    margin: 6px;
+}
+body{
+	background_colour: 'blue'
+}

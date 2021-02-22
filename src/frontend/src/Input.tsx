@@ -14,11 +14,13 @@ export function Input(props: Props) {
 
   return (
       <div>
-        <label>Enter value : </label>
+        <label>Enter value to set filters: </label>
         <textarea
             value={input}
             onChange={handleChange}
         />
+
+
       </div>
   )
 }
