@@ -3,13 +3,28 @@
 ## Uruchomienie
 ```bash
 pip3 install --upgrade websockets
-cd process-logger/src # katalog jest ważny
-python3 main.py command argument argument
+cd ./src/frontend/
+npm i
+npm run build
+cd ../../
+python3 src/main.py command a b c
 ```
 
-## Uwagi
-* Poprzedni kod w repozytorium został zintegrowany w to co jest teraz po refactoringu.
-* Chwilowo kompilacja przez cython nie działa, warto byłoby zastanowić się również nad innymi rozwiązaniami, np wheel. Uwaga na dziwny katalog z resource'ami `frontend`, który mi się nie podoba i już w tej chwili np. przeszkadza w uruchomieniu `main.py` z katalogu innego niż `src/`
+## Język
+* `true`, `false`
+* `5min30s` - RelativeTime (possible components in order `h`, `min`, `s`, `ms`, `us`)
+* `1` `0x100`, `0b100` - liczby
+* `<` `>` `<=` `=` `>=`
+* `+`, `-` on numbers and relative time
+* `*`, `/`, `^` on numbers
+* `"string"`
+* `or` or `||`, `and` or `&&`, `not`
+* `(expr)`
+* `text`, `child_pid`, `ret`, `type`, `signal` - values for some events (accessing value of the incorrect event type evaluates the whole top-level expression to `false`, allowing for e.g. `text =~ "a" or ret = 1`)
+* `fd`, `pid` - values for every event
+* `Math.sin(1)` - function call
+* `"ala ma kota" =~ "kota$"`
+* unknown names are resolved inside the `window` object so for example `Math.sin(1)` and `window.location` work
 
 ## Zarys architektury
 * `main.py` - parsowanie argumentów, decydowanie o domyślnych nazwach plików. Tutaj można dodać np. opcję wiersza poleceń do ustalania nazwy logów. Kod jedynie tworzy instancję klasy `Invoker`.
@@ -23,10 +38,12 @@ python3 main.py command argument argument
   * buforuje niepełne linie wyjścia
   * buforuje `strace`'owe linie `<unfinished ...>` oraz `<... resumed>` (strace ratuje się tak np. podczas otrzymania nieoczekiwanego sygnału).
   * zna obecny stan otwartych deskryptorów per process
+* `ShortTermMemoryOfEvents` - kolejka cykliczna, tutaj zapamiętywane jest ostatnie 10s eventów po to, żeby zaraz po podłączeniu klienta websocketów do serwera, klient mógł otrzymać eventy, które nie były jeszcze zapisane do pliku w chwili jego otwarcia ale wydarzyły się przed podłączeniem klienta do serwera.
+* `ANSIEscapeCodeParser` - parsing of [ANSI escape codes](https://en.wikipedia.org/wiki/ANSI_escape_code) in order to extract foreground/background color and formatting information out of the termial output, convert it to HTML for presentation on the frontend
 * `EventWriter` - superklasa. Można do niej pisać eventy albo zakończyć jej działanie przez `terminate()` (z założenia te eventy są związane ze stanem)
     * `WSBroadcastEventWriter` - zarządza websocketem (inicjalizacja, terminacja, przyjmowanie nowych klientów). Na `write` rozgłasza event do wszystkich słuchaczy. Klientami są oczywiście przeglądarki, które otworzą plik z logami.
     * `FrontendEventWriter` - zarządza plikiem html (tworzy go, w locie dopisuje do niego logi w XMLu, na początku i po śmierci procesu monitorowanego edytuje port WS w skrypcie na początku pliku).
-* Wynikowy plik html jest tworzony przez konstruktor `FrontendEventWriter` z szablonów i plików znajdujących się w katalogu `frontend/` (`index.html` oraz katalogi `css/`, `js/` nirekurencyjnie). Ze wzglęgu na to, że to osobne zasoby, chwilogo nie można uruchomić `main.py` z katalogu innego niż `src/`, ale kiedy zapadnie decyzja odnośnie metody dystrybucji (cython, wheel, cx-freeze...) będzie można include'ować te zasoby w bardziej akceptowalny sposób.
+* Wynikowy plik html jest tworzony przez konstruktor `FrontendEventWriter` z szablonów i plików znajdujących się w katalogu `frontend/` (`index.html` oraz katalogi `css/`, `js/` nirekurencyjnie).
 
 ## Styl
 * `assert`y są pożądane.
