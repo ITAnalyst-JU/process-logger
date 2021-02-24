@@ -42,7 +42,7 @@ export interface ColumnInfo {
 export const columnsInfo: Map<TableColumn, ColumnInfo> = new Map([
   [TableColumn.Time, { label: "Time", key: "time" }],
   [TableColumn.Pid, { label: "Process ID", key: "pid" }],
-  [TableColumn.Content, { label: "Output", key: "content" }],
+  [TableColumn.Content, { label: "Output", key: "content", style: { textAlign: "left" } }],
   [TableColumn.EventType, { label: "Event", key: "eventType" }],
   [TableColumn.FileDescriptor, { label: "Output fd", key: "fd" }],
   [TableColumn.ChildPid, { label: "New process PID", key: "childPid" }],
