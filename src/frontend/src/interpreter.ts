@@ -145,8 +145,11 @@ export function eval_(e: any, pe: ParseEvent): any {
                 if ("fd" in pe) return parseInt(pe["fd"]);
                 else throw new WrongTypeOfEvent();
             } else if (names[0] == "text") {
-                if ("content" in pe) return pe["content"];
-                else throw new WrongTypeOfEvent();
+                if ("content" in pe) {
+                    let ret = pe["content"];
+                    console.warn(ret);
+                    if ("content" in ret) return ret["content"]; else return ret;
+                } else throw new WrongTypeOfEvent();
             } else if (names[0] == "signal") {
                 if ("signalName" in pe) return pe["signalName"];
                 else throw new WrongTypeOfEvent();

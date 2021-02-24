@@ -31482,8 +31482,14 @@ function eval_(e, pe) {
                     throw new WrongTypeOfEvent();
             }
             else if (names[0] == "text") {
-                if ("content" in pe)
-                    return pe["content"];
+                if ("content" in pe) {
+                    var ret = pe["content"];
+                    console.warn(ret);
+                    if ("content" in ret)
+                        return ret["content"];
+                    else
+                        return ret;
+                }
                 else
                     throw new WrongTypeOfEvent();
             }
