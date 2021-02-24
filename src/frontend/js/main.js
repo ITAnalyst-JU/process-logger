@@ -31294,12 +31294,29 @@ function assert(cond, what) {
     if (!cond)
         throw "Assertion error: " + what;
 }
+function eval_maybe_bool(e, pe) {
+    try {
+        var got = eval_(e, pe);
+        return got;
+    }
+    catch (e) {
+        if (e instanceof WrongTypeOfEvent) {
+            return false;
+        }
+        else {
+            throw e;
+        }
+    }
+}
 function eval_(e, pe) {
-    if ([_parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.NumberLiteral, _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.BooleanLiteral, _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.RelativeTimeLiteral, _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.StringLiteral, _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.Parens].includes(e.type_)) {
+    if (e.type_ === _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.Parens) {
+        return eval_(e.e, pe);
+    }
+    else if ([_parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.NumberLiteral, _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.BooleanLiteral, _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.RelativeTimeLiteral, _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.StringLiteral].includes(e.type_)) {
         return e.e;
     }
     else if ([_parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.Not].includes(e.type_)) {
-        var value = eval_(e.e, pe);
+        var value = eval_maybe_bool(e.e, pe);
         if (typeof value !== "boolean") {
             throw new TypeError("Not needs boolean and not " + (typeof value));
         }
@@ -31307,7 +31324,7 @@ function eval_(e, pe) {
     }
     else if ([_parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.And, _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.Or].includes(e.type_)) {
         // XXX extra important! Bez leniwej evaluacji nie można będzie zrobić np (fd = 2) or (childPid = 100) bo jedno z nich zawsze się wywali!
-        var v_a = eval_(e.a, pe);
+        var v_a = eval_maybe_bool(e.a, pe);
         if (typeof v_a !== "boolean") {
             throw new TypeError(((e.type_ === _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.Or) ? "Or" : "And") + " needs a boolean as its first argument and not " + (typeof v_a));
         }
@@ -31321,17 +31338,15 @@ function eval_(e, pe) {
         }
         else
             assert(false, "sdf64343");
-        var v_b = eval_(e.b, pe);
+        var v_b = eval_maybe_bool(e.b, pe);
         if (typeof v_b !== "boolean") {
             throw new TypeError(((e.type_ === _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.Or) ? "Or" : "And") + " needs a boolean as its second argument and not " + (typeof v_b));
         }
         if (e.type_ === _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.And) {
-            if (!v_a)
-                return false;
+            return (v_a && v_b);
         }
         else if (e.type_ === _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.Or) {
-            if (v_a)
-                return true;
+            return (v_a || v_b);
         }
         else
             assert(false, "ds4622");

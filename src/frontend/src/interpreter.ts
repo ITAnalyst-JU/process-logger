@@ -11,19 +11,33 @@ export class WrongTypeOfEvent {constructor(public what:string="This action canno
 
 function assert(cond: boolean, what: string = "") { if (!cond) throw "Assertion error: " + what; }
 
+function eval_maybe_bool(e: any, pe: ParseEvent): any {
+    try {
+        let got = eval_(e, pe);
+        return got;
+    } catch (e) {
+        if (e instanceof WrongTypeOfEvent) {
+            return false;
+        } else {
+            throw e;
+        }
+    }
+}
 
 export function eval_(e: any, pe: ParseEvent): any {
-    if ([Parser.Type.NumberLiteral, Parser.Type.BooleanLiteral, Parser.Type.RelativeTimeLiteral, Parser.Type.StringLiteral, Parser.Type.Parens].includes(e.type_)) {
+    if (e.type_ === Parser.Type.Parens) {
+        return eval_(e.e, pe);
+    } else if ([Parser.Type.NumberLiteral, Parser.Type.BooleanLiteral, Parser.Type.RelativeTimeLiteral, Parser.Type.StringLiteral].includes(e.type_)) {
         return e.e;
     } else if ([Parser.Type.Not].includes(e.type_)) {
-        let value = eval_(e.e, pe);
+        let value = eval_maybe_bool(e.e, pe);
         if (typeof value !== "boolean") {
             throw new TypeError("Not needs boolean and not " + (typeof value));
         }
         return !value;
     } else if ([Parser.Type.And, Parser.Type.Or].includes(e.type_)) {
         // XXX extra important! Bez leniwej evaluacji nie można będzie zrobić np (fd = 2) or (childPid = 100) bo jedno z nich zawsze się wywali!
-        let v_a = eval_(e.a, pe);
+        let v_a = eval_maybe_bool(e.a, pe);
         if (typeof v_a !== "boolean") {
             throw new TypeError(((e.type_ === Parser.Type.Or) ? "Or" : "And") + " needs a boolean as its first argument and not " + (typeof v_a));
         }
@@ -33,14 +47,14 @@ export function eval_(e: any, pe: ParseEvent): any {
             if (v_a) return true;
         } else assert(false, "sdf64343");
 
-        let v_b = eval_(e.b, pe);
+        let v_b = eval_maybe_bool(e.b, pe);
         if (typeof v_b !== "boolean") {
             throw new TypeError(((e.type_ === Parser.Type.Or) ? "Or" : "And") + " needs a boolean as its second argument and not " + (typeof v_b));
         }
         if (e.type_ === Parser.Type.And) {
-            if (!v_a) return false;
+            return (v_a && v_b);
         } else if (e.type_ === Parser.Type.Or) {
-            if (v_a) return true;
+            return (v_a || v_b);
         } else assert(false, "ds4622");
     } else if ([Parser.Type.Exp, Parser.Type.Mul, Parser.Type.Div].includes(e.type_)) {
         let v_a = eval_(e.a, pe);
