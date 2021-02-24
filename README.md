@@ -21,6 +21,7 @@ python3 src/main.py command a b c
 * `text`, `child_pid`, `ret`, `type`, `signal` - values for some events
 * `fd`, `pid` - values for every event
 * `Math.sin(1)` - function call
+* `"ala ma kota" =~ "kota$`
 * unknown names are resolved inside the `window` object so for example `Math.sin(1)` and `window.location` work
 
 ## Zarys architektury
