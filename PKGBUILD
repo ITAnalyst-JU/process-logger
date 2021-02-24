@@ -17,19 +17,19 @@ conflicts=()
 replaces=()
 backup=()
 options=()
-source=("$pkgname.zip")
+source=("$pkgname-master.zip::https://github.com/ITAnalyst-JU/process-logger/archive/master.zip")
 noextract=()
 md5sums=("SKIP")
 validpgpkeys=()
 
 build() {
-	cd "$pkgname/src/frontend"
+	cd "$pkgname-master/src/frontend"
 	npm install
 	npm run build
 }
 
 package() {
-	cd "$pkgname/src"
+	cd "$pkgname-master/src"
 	TARGET="$pkgdir/usr/share/$pkgname"
 	mkdir -p "$TARGET"
 	cp -r events *.py "$TARGET"
