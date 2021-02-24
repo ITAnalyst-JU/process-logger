@@ -7,4 +7,3 @@ build/*
 src/__pycache__/*
 src/events/__pycache__/*
 src/frontend/node_modules/*
-src/frontend/js/main.js
