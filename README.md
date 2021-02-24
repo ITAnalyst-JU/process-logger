@@ -10,6 +10,19 @@ cd ../../
 python3 src/main.py command a b c
 ```
 
+## Język
+* `1` `0x100`, `0b100` - liczby
+* `<` `>` `<=` `=` `>=`
+* `+`, `-` on numbers and relative time
+* `*`, `/`, `^` on numbers
+* `"string"`
+* `or` or `||`, `and` or `&&`, `not`
+* (expr)
+* `text`, `child_pid`, `ret`, `type`, `signal` - values for some events
+* `fd`, `pid` - values for every event
+* `Math.sin(1)` - function call
+* unknown names are resolved inside the `window` object so for example `Math.sin(1)` and `window.location` work
+
 ## Zarys architektury
 * `main.py` - parsowanie argumentów, decydowanie o domyślnych nazwach plików. Tutaj można dodać np. opcję wiersza poleceń do ustalania nazwy logów. Kod jedynie tworzy instancję klasy `Invoker`.
 * `Invoker` - właściwa klasa inicjująca wszystko i mająca referencje do monitorowanego procesu, instancji parsera, `FrontendEventWriter`, `WSBroadcastEventWriter`.
