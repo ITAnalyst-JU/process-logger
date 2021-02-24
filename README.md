@@ -20,7 +20,7 @@ python3 src/main.py command a b c
 * `"string"`
 * `or` or `||`, `and` or `&&`, `not`
 * `(expr)`
-* `text`, `child_pid`, `ret`, `type`, `signal` - values for some events
+* `text`, `child_pid`, `ret`, `type`, `signal` - values for some events (accessing value of the incorrect event type evaluates the whole top-level expression to `false`, allowing for e.g. `text =~ "a" or ret = 1`)
 * `fd`, `pid` - values for every event
 * `Math.sin(1)` - function call
 * `"ala ma kota" =~ "kota$"`
