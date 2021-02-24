@@ -11,13 +11,15 @@ python3 src/main.py command a b c
 ```
 
 ## Język
+* `true`, `false`
+* `5min30s` - RelativeTime (possible components in order `h`, `min`, `s`, `ms`, `us`)
 * `1` `0x100`, `0b100` - liczby
 * `<` `>` `<=` `=` `>=`
 * `+`, `-` on numbers and relative time
 * `*`, `/`, `^` on numbers
 * `"string"`
 * `or` or `||`, `and` or `&&`, `not`
-* (expr)
+* `(expr)`
 * `text`, `child_pid`, `ret`, `type`, `signal` - values for some events
 * `fd`, `pid` - values for every event
 * `Math.sin(1)` - function call
