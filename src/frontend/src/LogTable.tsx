@@ -21,6 +21,12 @@ export function LogTable(props: Props) {
   }
   filteredData.map((record) => {
     if ((record as ParseOutputLine).content) {
+      // @ts-ignore
+      if ((record as ParseOutputLine).content.content) {
+        // @ts-ignore
+        (record as ParseOutputLine).content = unsafe((record as ParseOutputLine).content.content);
+        return record;
+      }
       (record as ParseOutputLine).content = unsafe((record as ParseOutputLine).content);
     }
     return record;

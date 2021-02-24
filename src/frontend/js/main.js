@@ -28727,6 +28727,12 @@ function LogTable(props) {
     }
     filteredData.map(function (record) {
         if (record.content) {
+            // @ts-ignore
+            if (record.content.content) {
+                // @ts-ignore
+                record.content = unsafe(record.content.content);
+                return record;
+            }
             record.content = unsafe(record.content);
         }
         return record;
