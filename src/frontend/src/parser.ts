@@ -230,6 +230,35 @@ export function string_(str: string): Parser<string> {
   }
 }
 
+export let stringLiteral: Parser<string> = sv => {
+    if (sv.length < 2 || !sv.substr(0,1).equals('"')) return [];
+    let collectedString = "";
+    let escapingThisChar  = false;
+    let secondQuoteIndex = -1;
+    for (let i = 1; i < sv.length; i++) {
+        if (escapingThisChar) {
+            escapingThisChar = false;
+            if (sv.charAt(i) == 'n') collectedString += '\n'
+            else if (sv.charAt(i) == 't') collectedString += '\t'
+            else if (sv.charAt(i) == 'r') collectedString += '\r'
+            else if (sv.charAt(i) == 'f') collectedString += '\f'
+            else if (sv.charAt(i) == 'b') collectedString += '\b'
+            else collectedString += sv.charAt(i);
+        } else {
+            if (sv.charAt(i) == '"') {
+                secondQuoteIndex = i;
+                break;
+            } else if (sv.charAt(i) == '\\') {
+                escapingThisChar = true;
+            } else {
+                collectedString += sv.charAt(i);
+            }
+        }
+    }
+    if (escapingThisChar || secondQuoteIndex == -1) return [];
+    else return [[collectedString, sv.substr(secondQuoteIndex+1)]];
+}
+
 export let space: Parser<null> = bind(many(sat(c => /^\s$/.test(c))), _ => pure(null))
 export let token = function<A>(p:Parser<A>): Parser<A>  {
   return bind(space, _ => bind(p, x => bind(space, _ => return_(x))))
@@ -359,43 +388,43 @@ export let timeLiteral: Parser<RelativeTime> =
 export enum Type {
   Or = '∨', And = '∧', Exp = '^', Not = 'not', Add = '+', Sub = '-', Div = '/', Mul = '*',
   NumberLiteral = 'number', BooleanLiteral = 'bool', Parens = 'begin',
-  Match = '~', Eq = '=', Leq = '≤', Geq = '≥', Lt = '<', Gt = '>',
-  DottedSymbolLiteral = 'symbol', FunctionCall = 'apply', RelativeTimeLiteral = 'time',
+  Match = '~=', Eq = '=', Leq = '≤', Geq = '≥', Lt = '<', Gt = '>',
+  DottedSymbolLiteral = 'symbol', FunctionCall = 'apply', RelativeTimeLiteral = 'time', StringLiteral = 'string_lit',
 }
-
 
 
 export class FunctionCall { type_ = Type.FunctionCall; constructor(public name: DottedSymbolLiteral, public args: OrExpr[]){} }
 export class DottedSymbolLiteral { type_ = Type.DottedSymbolLiteral; constructor(public e: string[]){} }
 export class RelativeTimeLiteral { type_ = Type.RelativeTimeLiteral; constructor(public e: RelativeTime){} }
-class NumberLiteral { type_ = Type.NumberLiteral; constructor(public e: number){} }
-class BooleanLiteral { type_ = Type.BooleanLiteral; constructor(public e: boolean){} }
-class Parens { type_ = Type.Parens; constructor(public e: OrExpr){} }
-class Exp { type_ = Type.Exp; constructor(public a: Expr, public b: Expr){} }
-class Mul { type_ = Type.Mul; constructor(public a: Expr, public b: Expr){} }
-class Div { type_ = Type.Div; constructor(public a: Expr, public b: Expr){} }
-class Add { type_ = Type.Add; constructor(public a: Expr, public b: Expr){} }
-class Sub { type_ = Type.Sub; constructor(public a: Expr, public b: Expr) {} }
+export class NumberLiteral { type_ = Type.NumberLiteral; constructor(public e: number){} }
+export class BooleanLiteral { type_ = Type.BooleanLiteral; constructor(public e: boolean){} }
+export class StringLiteral { type_ = Type.StringLiteral; constructor(public e: string){} }
+export class Parens { type_ = Type.Parens; constructor(public e: OrExpr){} }
+export class Exp { type_ = Type.Exp; constructor(public a: Expr, public b: Expr){} }
+export class Mul { type_ = Type.Mul; constructor(public a: Expr, public b: Expr){} }
+export class Div { type_ = Type.Div; constructor(public a: Expr, public b: Expr){} }
+export class Add { type_ = Type.Add; constructor(public a: Expr, public b: Expr){} }
+export class Sub { type_ = Type.Sub; constructor(public a: Expr, public b: Expr) {} }
 
-class Match { type_ = Type.Match; constructor(public a: Expr, public b: RelExp) {} }
-class Lt { type_ = Type.Lt; constructor(public a: Expr, public b: RelExp) {} }
-class Leq { type_ = Type.Leq; constructor(public a: Expr, public b: RelExp) {} }
-class Eq { type_ = Type.Eq; constructor(public a: Expr, public b: RelExp) {} }
-class Geq { type_ = Type.Geq; constructor(public a: Expr, public b: RelExp) {} }
-class Gt { type_ = Type.Gt; constructor(public a: Expr, public b: RelExp) {} }
+export class Match { type_ = Type.Match; constructor(public a: Expr, public b: RelExp) {} }
+export class Lt { type_ = Type.Lt; constructor(public a: Expr, public b: RelExp) {} }
+export class Leq { type_ = Type.Leq; constructor(public a: Expr, public b: RelExp) {} }
+export class Eq { type_ = Type.Eq; constructor(public a: Expr, public b: RelExp) {} }
+export class Geq { type_ = Type.Geq; constructor(public a: Expr, public b: RelExp) {} }
+export class Gt { type_ = Type.Gt; constructor(public a: Expr, public b: RelExp) {} }
 
-class Not { type_ = Type.Not;  constructor(public e: OrExpr){} }
-class Or { type_ = Type.Or; constructor(public a: OrExpr, public b: OrExpr){} }
-class And { type_ = Type.And; constructor(public a: OrExpr, public b: OrExpr){} }
+export class Not { type_ = Type.Not;  constructor(public e: OrExpr){} }
+export class Or { type_ = Type.Or; constructor(public a: OrExpr, public b: OrExpr){} }
+export class And { type_ = Type.And; constructor(public a: OrExpr, public b: OrExpr){} }
 
-type Factor = RelativeTimeLiteral | FunctionCall | DottedSymbolLiteral | NumberLiteral | BooleanLiteral | Parens
-type ExpFactor = Exp | Factor
-type Term = ExpFactor | Mul | Div
-type Expr = Term | Add | Sub
-type RelExp = Expr | Match | Lt | Leq | Eq | Gt | Geq
-type NotExpr = RelExp | Not
-type AndExpr = NotExpr | And
-type OrExpr = AndExpr | Or
+export type Factor = RelativeTimeLiteral | FunctionCall | DottedSymbolLiteral | NumberLiteral | BooleanLiteral | StringLiteral | Parens
+export type ExpFactor = Exp | Factor
+export type Term = ExpFactor | Mul | Div
+export type Expr = Term | Add | Sub
+export type RelExp = Expr | Match | Lt | Leq | Eq | Gt | Geq
+export type NotExpr = RelExp | Not
+export type AndExpr = NotExpr | And
+export type OrExpr = AndExpr | Or
 
 export function orExpr(sv: StringView): [OrExpr, StringView][] {
   return (
@@ -421,7 +450,7 @@ export function notExpr(sv: StringView): [NotExpr, StringView][] {
 export function relExpr(sv: StringView): [RelExp, StringView][] {
   return (
     bind(expr, e1 =>
-      alternative(bind(token(string_('~')), _ => bind(relExpr, e2 => return_(new Match(e1,e2)))),
+      alternative(bind(token(string_('=~')), _ => bind(relExpr, e2 => return_(new Match(e1,e2)))),
         alternative(bind(token(string_('=')), _ => bind(relExpr, e2 => return_(new Eq(e1, e2)))),
           alternative(bind(token(string_('<')), _ => bind(relExpr, e2 => return_(new Lt(e1, e2)))),
             alternative(bind(token(string_('<=')), _ => bind(relExpr, e2 => return_(new Leq(e1, e2)))),
@@ -472,16 +501,18 @@ export function factor(sv: StringView): [Factor, StringView][] {
           bind(token(integerLiteral), n => return_(new NumberLiteral(n))),
           alternative(
             bind(token(booleanLiteral), b => return_(new BooleanLiteral(b))),
-            alternative( // TODO wyciągnąć dottedSymbol przed alternative
-              bind(token(dottedSymbol), ss =>
-                bind(token(string_('(')), _ =>
-                  alternative(
-                    bind(token(string_(')')), _ => return_(new FunctionCall(new DottedSymbolLiteral(ss), []))),
-                    bind(orExpr, e1 =>
-                      bind(many(bind(token(string_(',')), _ => bind(orExpr, ei => return_(ei)))), args =>
-                        bind(token(string_(')')), _ =>
-                          return_(new FunctionCall(new DottedSymbolLiteral(ss), Array.prototype.concat([e1], args))))))))),
-              bind(token(dottedSymbol), ss => return_(new DottedSymbolLiteral(ss))))))))
+            alternative(
+                bind(token(stringLiteral), str => return_(new StringLiteral(str))), 
+                alternative( // TODO wyciągnąć dottedSymbol przed alternative
+                    bind(token(dottedSymbol), ss =>
+                        bind(token(string_('(')), _ =>
+                            alternative(
+                                bind(token(string_(')')), _ => return_(new FunctionCall(new DottedSymbolLiteral(ss), []))),
+                                bind(orExpr, e1 =>
+                                    bind(many(bind(token(string_(',')), _ => bind(orExpr, ei => return_(ei)))), args =>
+                                        bind(token(string_(')')), _ =>
+                                            return_(new FunctionCall(new DottedSymbolLiteral(ss), Array.prototype.concat([e1], args))))))))),
+                    bind(token(dottedSymbol), ss => return_(new DottedSymbolLiteral(ss)))))))))
     )(sv)
 }
 

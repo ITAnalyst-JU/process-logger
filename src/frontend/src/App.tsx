@@ -3,6 +3,12 @@ import {LogTable} from "./LogTable";
 import {ParseEvent, RowPredicate, TableColumn, TruePredicate} from "./types";
 import {DataNode, parseEvent, parseEvents} from "./eventsParser";
 import {Input} from "./Input";
+import {Parser} from "./parser";
+import {eval_} from "./interpreter";
+
+function assert(condition: boolean) {
+    if (!condition) throw "assertion error";
+}
 
 //TODO: Extract to another file
 const styles = `
@@ -168,16 +174,37 @@ export default function App() {
     }
     const [startMarker, setStartMarker] = useState<boolean>(false);
     // TODO: There is something wrong with this initial state, maybe someone knows react/ts better and can say why filter === true now...
-    const [filter, setFilter] = useState<RowPredicate>(TruePredicate);
+    const [filter, setFilter] = useState<RowPredicate>( () => TruePredicate );
 
     useLayoutEffect(() => {
         setData(parseEvents(document.getElementById('data')));
     }, [startMarker]);
 
     function updateFilter(input: string): void {
-        // TODO: pass input to parser and get result
-        const result = () => true;
-        setFilter(result);
+        console.log("passed input to set the predicate ", input);
+
+        let parsed = Parser.orExpr(new Parser.StringView(input));
+        if (parsed.length == 0) {
+            console.log("cannot parse anything for input", input)
+        } else {
+            let [[expr, left]] = parsed;
+            assert(left.length >= 0);
+            if (left.length > 0) {
+                console.log("not parsed everything, this bit is left unparsed:", left.toString());
+            } else {
+                let newPredicate = (parseEvent: ParseEvent): boolean => {
+                    console.log('the predicate received', parseEvent);
+                    try {
+                        let got = eval_(expr, parseEvent);
+                        return got;
+                    } catch(e) {
+                        console.warn("Evaluation of the predicate threw", e);
+                        return false;
+                    }
+                }
+                setFilter(() => newPredicate);
+            }
+        }
     }
 
     return (
@@ -188,7 +215,7 @@ export default function App() {
             <LogTable
                 selectedColumns={[TableColumn.Time, TableColumn.Pid, TableColumn.Content, TableColumn.ChildPid, TableColumn.EventType, TableColumn.FileDescriptor, TableColumn.ReturnValue]}
                 data={data}
-                filter={filter}
+                filter_={filter}
             />
         </div>
     )

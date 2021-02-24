@@ -9,7 +9,11 @@ export function Input(props: Props) {
 
   function handleChange(event: any) {
     setInput(event.target.value);
-    props.updateFilter(input);
+    if (event.target.value.match(/^ *$/) !== null) {
+        props.updateFilter("true")
+    } else {
+        props.updateFilter(event.target.value);
+    }
   }
 
   return (

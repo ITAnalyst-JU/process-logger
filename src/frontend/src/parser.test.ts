@@ -153,6 +153,20 @@ describe('basic types', function(){
     expect(d[0].toMicroseconds()).toEqual(-3);
     expect(d[1].toString()).toEqual("");
   })
+
+  it('string literal', function() {
+    const a1 = Parser.parse(Parser.stringLiteral, new Parser.StringView('"hello"'))[0]
+    expect(a1[0] == 'hello');
+    expect(a1[1].toString()).toEqual('');
+
+    const a2 = Parser.parse(Parser.stringLiteral, new Parser.StringView('"hello\\""'))[0]
+    expect(a2[0] == 'hello"');
+    expect(a2[1].toString()).toEqual('');
+
+    const a3 = Parser.parse(Parser.factor, new Parser.StringView('  "h\\"e\\nllo\\"" '))[0]
+    expect(a3[0] instanceof Parser.StringLiteral && a3[0].e === 'h"e\nllo"');
+    expect(a3[1].toString()).toEqual('');
+  })
 })
 
 

@@ -28574,6 +28574,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _types__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(30);
 /* harmony import */ var _eventsParser__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(31);
 /* harmony import */ var _Input__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(33);
+/* harmony import */ var _parser__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(34);
+/* harmony import */ var _interpreter__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(35);
 var __spreadArrays = (undefined && undefined.__spreadArrays) || function () {
     for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
     for (var r = Array(s), k = 0, i = 0; i < il; i++)
@@ -28586,6 +28588,12 @@ var __spreadArrays = (undefined && undefined.__spreadArrays) || function () {
 
 
 
+
+
+function assert(condition) {
+    if (!condition)
+        throw "assertion error";
+}
 //TODO: Extract to another file
 var styles = "\n@import url('https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700');\n\n$base-spacing-unit: 24px;\n$half-spacing-unit: $base-spacing-unit / 2;\n\n$color-alpha: #1772FF;\n$color-form-highlight: #EEEEEE;\n\n*, *:before, *:after {\n\tbox-sizing:border-box;\n}\n\nbody {\n\tpadding:$base-spacing-unit;\n\tfont-family:'Source Sans Pro', sans-serif;\n\tmargin:0;\n}\n\nh1,h2,h3,h4,h5,h6 {\n\tmargin:0;\n}\n\n.container {\n\tmax-width: 1000px;\n\tmargin-right:auto;\n\tmargin-left:auto;\n\tdisplay:flex;\n\tjustify-content:center;\n\talign-items:center;\n\tmin-height:100vh;\n}\n\n\ntable {\n\twidth:100%;\n\tborder:1px solid $color-form-highlight;\n}\n\nthead {\n\tdisplay:flex;\n\twidth:100%;\n\tbackground:#000;\n\tpadding:($half-spacing-unit * 1.5) 0;\n}\n\ntr {\n\tdisplay:flex;\n\twidth:100%;\n\tpadding:($half-spacing-unit * 1.5) 0;\n\n}\n\ntr:nth-of-type(even) {\n\t\tbackground-color: #EEEEEE;\n\t}\n\ntd, th {\n\tflex: 1 1 20%;\n\ttext-align:center;\n}\n\nth {\n\ttext-transform:uppercase;\n\tcolor:white;\n}\nlabel{\n\tfont-size: 26px;\n\tdisplay: inline;\n   \tfloat: left;\n   \ttext-align: right;\n   \tpadding: 5px 50px ;\n}\ntextarea {\n  width: 700px;\n  height: 200px;\n  border: 2px solid #000;\n  background-color: #EEEEEE;\n  font-size: 16px;\n}\n\ntextarea:focus {\n\tborder: 3px solid #000;\n\tbackground-color: #FFFFFF;\n}\n\ndiv{\n\tpadding: 7px 20px 75px 20px\n}\n\n";
 function App() {
@@ -28652,18 +28660,41 @@ function App() {
     };
     var _b = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(false), startMarker = _b[0], setStartMarker = _b[1];
     // TODO: There is something wrong with this initial state, maybe someone knows react/ts better and can say why filter === true now...
-    var _c = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(_types__WEBPACK_IMPORTED_MODULE_2__["TruePredicate"]), filter = _c[0], setFilter = _c[1];
+    var _c = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(function () { return _types__WEBPACK_IMPORTED_MODULE_2__["TruePredicate"]; }), filter = _c[0], setFilter = _c[1];
     Object(react__WEBPACK_IMPORTED_MODULE_0__["useLayoutEffect"])(function () {
         setData(Object(_eventsParser__WEBPACK_IMPORTED_MODULE_3__["parseEvents"])(document.getElementById('data')));
     }, [startMarker]);
     function updateFilter(input) {
-        // TODO: pass input to parser and get result
-        var result = function () { return true; };
-        setFilter(result);
+        console.log("passed input to set the predicate ", input);
+        var parsed = _parser__WEBPACK_IMPORTED_MODULE_5__["Parser"].orExpr(new _parser__WEBPACK_IMPORTED_MODULE_5__["Parser"].StringView(input));
+        if (parsed.length == 0) {
+            console.log("cannot parse anything for input", input);
+        }
+        else {
+            var _a = parsed[0], expr_1 = _a[0], left = _a[1];
+            assert(left.length >= 0);
+            if (left.length > 0) {
+                console.log("not parsed everything, this bit is left unparsed:", left.toString());
+            }
+            else {
+                var newPredicate_1 = function (parseEvent) {
+                    console.log('the predicate received', parseEvent);
+                    try {
+                        var got = Object(_interpreter__WEBPACK_IMPORTED_MODULE_6__["eval_"])(expr_1, parseEvent);
+                        return got;
+                    }
+                    catch (e) {
+                        console.warn("Evaluation of the predicate threw", e);
+                        return false;
+                    }
+                };
+                setFilter(function () { return newPredicate_1; });
+            }
+        }
     }
     return (react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null,
         react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_Input__WEBPACK_IMPORTED_MODULE_4__["Input"], { updateFilter: updateFilter }),
-        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_LogTable__WEBPACK_IMPORTED_MODULE_1__["LogTable"], { selectedColumns: [_types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].Time, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].Pid, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].Content, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].ChildPid, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].EventType, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].FileDescriptor, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].ReturnValue], data: data, filter: filter })));
+        react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_LogTable__WEBPACK_IMPORTED_MODULE_1__["LogTable"], { selectedColumns: [_types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].Time, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].Pid, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].Content, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].ChildPid, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].EventType, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].FileDescriptor, _types__WEBPACK_IMPORTED_MODULE_2__["TableColumn"].ReturnValue], data: data, filter_: filter })));
 }
 
 
@@ -28687,11 +28718,12 @@ var unsafe = reactable__WEBPACK_IMPORTED_MODULE_1__["unsafe"];
 function LogTable(props) {
     var columns = props.selectedColumns.map(function (column) { return _types__WEBPACK_IMPORTED_MODULE_2__["columnsInfo"].get(column); });
     var filteredData = props.data;
+    console.log('LogTable running with ', props);
     try {
-        filteredData = props.data.filter(function (record) { return props.filter(record); });
+        filteredData = props.data.filter(function (record) { return props.filter_(record); });
     }
     catch (e) {
-        console.log("Something wrong with the predicate.");
+        console.log("Something wrong with the predicate:", e);
     }
     filteredData.map(function (record) {
         if (record.content) {
@@ -30497,11 +30529,975 @@ function Input(props) {
     var _a = Object(react__WEBPACK_IMPORTED_MODULE_0__["useState"])(""), input = _a[0], setInput = _a[1];
     function handleChange(event) {
         setInput(event.target.value);
-        props.updateFilter(input);
+        if (event.target.value.match(/^ *$/) !== null) {
+            props.updateFilter("true");
+        }
+        else {
+            props.updateFilter(event.target.value);
+        }
     }
     return (react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null,
         react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("label", null, "Enter value to set filters: "),
         react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("textarea", { value: input, onChange: handleChange })));
+}
+
+
+/***/ }),
+/* 34 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Parser", function() { return Parser; });
+// XXX: proszę kompilować przez komendę `tsc -t es5 --strictNullChecks parser.ts && node ./parser.js` (ewentualnie es6)
+// XXX: jeśli są jakieś mocniejsze ogarniczenia na poprawność w TypeScripcie, proszę je dodać do komendy kompilującej i odpowiednio zmodyfikować kod
+// XXX: parser to zaadoptowana wersja monadycznego parsera w Haskellu z 13ego rozdziału książki "Programming in Haskell" 2nd edition, Graham Hutton
+// XXX: kiedy wybrana nazwa koliduje ze słowem kluczowym w JSie lub TypeScripcie, stosowana jest Pythonowa konwencja dodania pojedynczego podkreślenia po nazwie, np. type -> type_
+// XXX: typeclassy z Haskella nie są zaimplementowane korzystając z generyków, one są jedynie dla typu Parser, jeśli da się to łatwo naprawić, można, jeśli nie, nie chch tak zostanie
+// XXX: dodawanie lepszego typowania w TypeScripcie jest mile widziane, typowanie ono znacznie przyspisza proces naprawy błędów w tak abstrakcyjnym kodzie
+// XXX: z uwagi na funkcyjny styl kod jest dość gęsty w znaczenie
+// XXX: jeśli nie przeszkadza nam to w jednoznacznym parsowaniu, proponuję liberalnie akceprować wiele wesji konstruktów językowych zrozumiałych dla programistów (np. true oraz #t - rozwiązywane w parserze plus false oraz 0 - rozwiązywane w interpreterze/kompilatorze) albo różne wersje komentarzy (jeśli one rzeczywiście będą dodane)
+var __spreadArrays = (undefined && undefined.__spreadArrays) || function () {
+    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+    for (var r = Array(s), k = 0, i = 0; i < il; i++)
+        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
+            r[k] = a[j];
+    return r;
+};
+// TODO: naprawić timeLiteral żeby nie mylił ms i m
+// TODO: obecnie parsowane są jedynie symbole a.b.c albo funckje a.b.c(x,y), natomiast nie a(x).b(y).c(z). Naprawić
+// TODO: dodać parsowanie stringów oraz raw stringów (może tak jak działa R"()" w C++?), ewentualnie parsowanie regexów
+// TODO: constant propagation, czyszczenie wynikowego drzewa z FactorExp (tego, który wypisuje się jako (begin ))
+// TODO: przepisać console.logi na dole pliku na testy, dodać jakąś bibliotekę do testów (ale nie commitować jej na GitHuba)
+// TODO: left-/right-associativity jest prawie wszędzie niewłaściwe, naprawić to
+// TODO: ogarnąć trochę kolejność tych funkcji, jest chaotyczna
+// TODO?: może dodać komentarze? -> możliwe style multiline comments to
+//        (* Mathematica/ML *)
+//        /* C */
+//        #| lisp |#
+// TODO?: może dodać komentarze? -> możliwe style single-line comments to
+//        -- Haskell
+//        // C
+//        # Python
+//        ; lisp
+// XXX: cały parser oraz podstawowe optymalizacje, np. constant propagation powinny pozostać w tym jednym pliku, testy można przenieść do innego (testy będą uruchamiane jesynie przez node.js, można więc użyć modułów)
+// XXX: wszędzie w kombinacjach parserów uważać na kolejność
+// XXX: wszędzie w kombinacjach parserów uważać na różnicę między char(c) a string_(c), w TypeScripcie nie ma na to różnych typów, a nie chcę dodawać asserta c.length==1, bo char jest dość często wołany, choć może rzeczywiście warto dodać tam asserta?
+// XXX: wszędzie w kombinacjach parserów uważać na różnicę między some(p) a many(p). Some zwraca niepustą listę wyników (jak + w regexie), many niekoniecznie (jak * w regexie)
+// XXX: alternative w wersji wariadycznej trudno jest w TypeScripcie typować obecnie są dwie wersje alternative oraz alternative_ (wariadyczna)
+// TODO: brakujące symbole/funckje podczas interpretacji powinny być brane z obiektu window w przeglądarkowym JSie
+/*****************************
+ * FUNCTIONAL PRIMITIVES
+ ****************************/
+var Parser;
+(function (Parser) {
+    var StringView = /** @class */ (function () {
+        function StringView(s, start, len) {
+            if (start === void 0) { start = 0; }
+            this.s = s;
+            this.start = start;
+            this.len = len || s.length;
+        }
+        Object.defineProperty(StringView.prototype, "length", {
+            get: function () { return this.s.length; },
+            enumerable: false,
+            configurable: true
+        });
+        StringView.prototype.charAt = function (idx) {
+            return this.s[this.start + idx];
+        };
+        StringView.prototype.substr = function (start, length) {
+            if (start >= this.len)
+                return new StringView("", 0, 0);
+            if (length == undefined) {
+                return new StringView(this.s, this.start + start, this.len - start);
+            }
+            else {
+                return new StringView(this.s, this.start + start, Math.min(length, this.len - start));
+            }
+        };
+        StringView.prototype.equals = function (str) {
+            return str == this.toString();
+        };
+        StringView.prototype.toString = function () {
+            return this.s.substr(this.start, this.len);
+        };
+        return StringView;
+    }());
+    Parser.StringView = StringView;
+    // @ts-ignore
+    function curry(f) {
+        // @ts-ignore
+        return function recur() {
+            var args = Array.prototype.slice.call(arguments);
+            return args.length >= f.length ?
+                f.apply(null, args) : 
+            // @ts-ignore
+            recur.bind.apply(
+            // @ts-ignore
+            recur, __spreadArrays([null], args));
+        };
+    }
+    Parser.curry = curry;
+    function assert(c, s) {
+        if (s) {
+            if (!c)
+                throw 'Assertion error: ' + s;
+        }
+        else {
+            if (!c)
+                throw 'Assertion error!';
+        }
+    }
+    Parser.assert = assert;
+    function any(pred, xs) {
+        return !all(function (x) { return !pred(x); }, xs);
+    }
+    Parser.any = any;
+    /*****************************
+     *     USEFUL TYPECLASSES
+     ****************************/
+    // FUNCTOR
+    function fmap(f, p) {
+        return function (sv) {
+            var got = parse(p, sv);
+            if (got.length == 0)
+                return [];
+            else
+                return [[f(got[0][0]), got[0][1]]];
+        };
+    }
+    Parser.fmap = fmap;
+    // /FUNCTOR
+    // APPLICATIVE
+    function pure(x) {
+        return function (sv) { return [[x, sv]]; };
+    }
+    Parser.pure = pure;
+    function liftA2(pf, pa) {
+        return function (sv) {
+            var got = parse(pf, sv);
+            if (got.length == 0)
+                return [];
+            else
+                return parse(fmap(got[0][0], pa), got[0][1]);
+        };
+    }
+    Parser.liftA2 = liftA2;
+    // /APPLICATIVE
+    // MONAD
+    function bind(pa, fp) {
+        return function (sv) {
+            var got = parse(pa, sv);
+            if (got.length == 0)
+                return [];
+            else
+                return parse(fp(got[0][0]), got[0][1]);
+        };
+    }
+    Parser.bind = bind;
+    Parser.return_ = pure;
+    // /MONAD
+    // ALTERNATIVE
+    Parser.empty = function (sv) { return []; };
+    function alternative_(p) {
+        var ps = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            ps[_i - 1] = arguments[_i];
+        }
+        return function (sv) {
+            var got = parse(p, sv);
+            if (got.length > 0) {
+                return got;
+            }
+            else {
+                for (var pi in ps) {
+                    var got_1 = parse(ps[pi], sv);
+                    if (got_1.length > 0)
+                        return got_1;
+                }
+                return [];
+            }
+        };
+    }
+    Parser.alternative_ = alternative_;
+    function alternative(pa, pb) {
+        return alternative_(pa, pb);
+    }
+    Parser.alternative = alternative;
+    function many(p) {
+        return alternative(some(p), pure([]));
+    }
+    Parser.many = many;
+    function some(p) {
+        // return liftA2(liftA2(pure(curry((x, xs) => Array.prototype.concat([x], xs))), p), many(p)) //--> doesn't work, JS is eager
+        return function (sv) {
+            var firstGot = parse(p, sv);
+            if (firstGot.length == 0)
+                return [];
+            else {
+                var curr_sv = firstGot[0][1];
+                var results = [firstGot[0][0]];
+                while (true) {
+                    var got = parse(p, curr_sv);
+                    if (got.length == 0)
+                        return [[results, curr_sv]];
+                    else {
+                        results.push(got[0][0]);
+                        curr_sv = got[0][1];
+                    }
+                }
+            }
+        };
+    }
+    Parser.some = some;
+    // /ALTERNATIVE
+    // WEIRD
+    function optional(p) {
+        return function (sv) {
+            var got = parse(p, sv);
+            if (got.length == 0)
+                return [[null, sv]];
+            else
+                return got;
+        };
+    }
+    Parser.optional = optional;
+    // /WEIRD
+    /*****************************
+     *     PARSER PROPER
+     ****************************/
+    function parse(parser, sv) {
+        return parser(sv);
+    }
+    Parser.parse = parse;
+    Parser.item = function (sv) {
+        if (sv.length == 0)
+            return [];
+        else
+            return [[sv.charAt(0), sv.substr(1)]];
+    };
+    function sat(pred) {
+        return bind(Parser.item, function (c) { return pred(c) ? Parser.return_(c) : Parser.empty; });
+    }
+    Parser.sat = sat;
+    Parser.digit = sat(function (c) { return /^[0-9]$/.test(c); });
+    Parser.nonzeroDigit = sat(function (c) { return /^[1-9]$/.test(c); });
+    Parser.char = function (c) { return sat(function (c1) { return c === c1; }); };
+    Parser.letter = sat(function (c) { return /^[a-zA-Z]$/.test(c); });
+    Parser.symbolFirstChar = alternative(Parser.letter, Parser.char('_'));
+    Parser.symbolOtherChar = alternative(Parser.symbolFirstChar, Parser.digit);
+    function string_(str) {
+        return function (sv) {
+            if (sv.length < str.length || !sv.substr(0, str.length).equals(str))
+                return [];
+            else
+                return [[str, sv.substr(str.length)]];
+        };
+    }
+    Parser.string_ = string_;
+    Parser.stringLiteral = function (sv) {
+        if (sv.length < 2 || !sv.substr(0, 1).equals('"'))
+            return [];
+        var collectedString = "";
+        var escapingThisChar = false;
+        var secondQuoteIndex = -1;
+        for (var i = 1; i < sv.length; i++) {
+            if (escapingThisChar) {
+                escapingThisChar = false;
+                if (sv.charAt(i) == 'n')
+                    collectedString += '\n';
+                else if (sv.charAt(i) == 't')
+                    collectedString += '\t';
+                else if (sv.charAt(i) == 'r')
+                    collectedString += '\r';
+                else if (sv.charAt(i) == 'f')
+                    collectedString += '\f';
+                else if (sv.charAt(i) == 'b')
+                    collectedString += '\b';
+                else
+                    collectedString += sv.charAt(i);
+            }
+            else {
+                if (sv.charAt(i) == '"') {
+                    secondQuoteIndex = i;
+                    break;
+                }
+                else if (sv.charAt(i) == '\\') {
+                    escapingThisChar = true;
+                }
+                else {
+                    collectedString += sv.charAt(i);
+                }
+            }
+        }
+        if (escapingThisChar || secondQuoteIndex == -1)
+            return [];
+        else
+            return [[collectedString, sv.substr(secondQuoteIndex + 1)]];
+    };
+    Parser.space = bind(many(sat(function (c) { return /^\s$/.test(c); })), function (_) { return pure(null); });
+    Parser.token = function (p) {
+        return bind(Parser.space, function (_) { return bind(p, function (x) { return bind(Parser.space, function (_) { return Parser.return_(x); }); }); });
+    };
+    Parser.binaryDigit = alternative(Parser.char('0'), Parser.char('1'));
+    Parser.octalDigit = sat(function (c) { return /^[0-7]$/.test(c); });
+    Parser.hexDigit = sat(function (c) { return /^[0-9a-fA-F]$/.test(c); });
+    Parser.nonnegativeBinaryLiteral = bind(string_('0b'), function (_) {
+        return bind(some(Parser.binaryDigit), function (digits) {
+            return Parser.return_(parseInt(digits.join(''), 2));
+        });
+    });
+    Parser.nonnegativeOctalLiteral = bind(string_('0o'), function (_) {
+        return bind(some(Parser.octalDigit), function (digits) {
+            return Parser.return_(parseInt(digits.join(''), 8));
+        });
+    });
+    Parser.nonnegativeHexLiteral = bind(string_('0x'), function (_) {
+        return bind(some(Parser.hexDigit), function (digits) {
+            return Parser.return_(parseInt(digits.join(''), 16));
+        });
+    });
+    Parser.nonnegativeDecimalLiteral = bind(some(Parser.digit), function (ds) {
+        return Parser.return_(parseInt(ds.join(''), 10));
+    });
+    function nonnegativeToInteger(p) {
+        return alternative(p, bind(Parser.token(Parser.char('-')), function (_) { return bind(p, function (n) { return Parser.return_(-n); }); }));
+    }
+    Parser.nonnegative = alternative_(Parser.nonnegativeBinaryLiteral, Parser.nonnegativeOctalLiteral, Parser.nonnegativeHexLiteral, Parser.nonnegativeDecimalLiteral);
+    Parser.binaryLiteral = Parser.token(nonnegativeToInteger(Parser.nonnegativeBinaryLiteral));
+    Parser.octalLiteral = Parser.token(nonnegativeToInteger(Parser.nonnegativeOctalLiteral));
+    Parser.hexLiteral = Parser.token(nonnegativeToInteger(Parser.nonnegativeHexLiteral));
+    Parser.decimalLiteral = Parser.token(nonnegativeToInteger(Parser.nonnegativeDecimalLiteral));
+    Parser.integerLiteral = alternative_(Parser.hexLiteral, Parser.binaryLiteral, Parser.octalLiteral, Parser.decimalLiteral);
+    Parser.booleanLiteral = Parser.token(bind(alternative_(string_('true'), string_('false'), string_('#t'), string_('#f')), function (got) {
+        return Parser.return_(got === 'true' || got == '#t');
+    }));
+    Parser.symbol = Parser.token(bind(Parser.symbolFirstChar, function (c) {
+        return bind(many(Parser.symbolOtherChar), function (cs) {
+            return Parser.return_(c + cs.join(''));
+        });
+    }));
+    Parser.dottedSymbol = Parser.token(bind(Parser.symbol, function (s) {
+        return bind(many(bind(Parser.token(Parser.char('.')), function (_) { return Parser.symbol; })), function (ss) {
+            return Parser.return_(Array.prototype.concat([s], ss));
+        });
+    }));
+    // TIME LITERALS
+    var RelativeTime = /** @class */ (function () {
+        function RelativeTime(nonnegative, days, hours, minutes, seconds, milliseconds, microseconds) {
+            if (nonnegative === void 0) { nonnegative = true; }
+            if (days === void 0) { days = 0; }
+            if (hours === void 0) { hours = 0; }
+            if (minutes === void 0) { minutes = 0; }
+            if (seconds === void 0) { seconds = 0; }
+            if (milliseconds === void 0) { milliseconds = 0; }
+            if (microseconds === void 0) { microseconds = 0; }
+            this.nonnegative = nonnegative;
+            this.days = days;
+            this.hours = hours;
+            this.minutes = minutes;
+            this.seconds = seconds;
+            this.milliseconds = milliseconds;
+            this.microseconds = microseconds;
+        }
+        RelativeTime.prototype.toMicroseconds = function () {
+            var sign = 1;
+            if (this.nonnegative == false) {
+                sign = -1;
+            }
+            return sign * (this.microseconds + Math.pow(10, 3) * this.milliseconds + Math.pow(10, 6) * this.seconds +
+                60 * Math.pow(10, 6) * this.minutes + 60 * 60 * Math.pow(10, 6) * this.hours + 24 * 60 * 60 * Math.pow(10, 6) * this.days);
+        };
+        RelativeTime.prototype.copy = function () {
+            return new RelativeTime(this.nonnegative, this.days, this.hours, this.minutes, this.seconds, this.milliseconds, this.microseconds);
+        };
+        RelativeTime.prototype.plus = function () {
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
+            var ret = this.copy();
+            for (var i in args) {
+                var sign = args[i].nonnegative ? 1 : (-1);
+                ret.days += sign * args[i].days;
+                ret.hours += sign * args[i].hours;
+                ret.minutes += sign * args[i].minutes;
+                ret.seconds += sign * args[i].seconds;
+                ret.milliseconds += sign * args[i].milliseconds;
+                ret.microseconds += sign * args[i].microseconds;
+            }
+            return ret;
+        };
+        return RelativeTime;
+    }());
+    Parser.RelativeTime = RelativeTime;
+    Parser.days = bind(Parser.nonnegative, function (n) { return bind(Parser.token(string_('d')), function (_) { return Parser.return_(new RelativeTime(true, n)); }); });
+    Parser.hours = bind(Parser.nonnegative, function (n) { return bind(Parser.token(string_('h')), function (_) { return Parser.return_(new RelativeTime(true, 0, n)); }); });
+    Parser.minutes = bind(Parser.nonnegative, function (n) { return bind(Parser.token(string_('min')), function (_) { return Parser.return_(new RelativeTime(true, 0, 0, n)); }); });
+    Parser.seconds = bind(Parser.nonnegative, function (n) { return bind(Parser.token(string_('s')), function (_) { return Parser.return_(new RelativeTime(true, 0, 0, 0, n)); }); });
+    Parser.milliseconds = bind(Parser.nonnegative, function (n) { return bind(Parser.token(string_('ms')), function (_) { return Parser.return_(new RelativeTime(true, 0, 0, 0, 0, n)); }); });
+    Parser.microseconds = bind(Parser.nonnegative, function (n) { return bind(Parser.token(string_('us')), function (_) { return Parser.return_(new RelativeTime(true, 0, 0, 0, 0, 0, n)); }); });
+    function all(pred, xs) {
+        for (var i in xs) {
+            if (!pred(xs[i]))
+                return false;
+        }
+        return true;
+    }
+    Parser.all = all;
+    Parser.nonnegativeTimeLiteral = bind(optional(Parser.days), function (d) {
+        return bind(optional(Parser.hours), function (h) {
+            return bind(optional(Parser.minutes), function (m) {
+                return bind(optional(Parser.seconds), function (s) {
+                    return bind(optional(Parser.milliseconds), function (ms) {
+                        return bind(optional(Parser.microseconds), function (us) {
+                            return (function () {
+                                var results = [d, h, m, s, ms, us];
+                                if (!any(function (x) { return x !== null; }, results))
+                                    return Parser.empty;
+                                var rt = new RelativeTime(true);
+                                for (var i in results)
+                                    if (results[i] !== null)
+                                        rt = rt.plus(results[i]);
+                                return pure(rt);
+                            })();
+                        });
+                    });
+                });
+            });
+        });
+    });
+    Parser.timeLiteral = alternative(Parser.nonnegativeTimeLiteral, bind(Parser.char('-'), function (_) { return bind(Parser.nonnegativeTimeLiteral, function (rt) {
+        return Parser.return_((function () { rt.nonnegative = false; return rt; })());
+    }); }));
+    // /TIME LITERALS
+    // expressions
+    var Type;
+    (function (Type) {
+        Type["Or"] = "\u2228";
+        Type["And"] = "\u2227";
+        Type["Exp"] = "^";
+        Type["Not"] = "not";
+        Type["Add"] = "+";
+        Type["Sub"] = "-";
+        Type["Div"] = "/";
+        Type["Mul"] = "*";
+        Type["NumberLiteral"] = "number";
+        Type["BooleanLiteral"] = "bool";
+        Type["Parens"] = "begin";
+        Type["Match"] = "~=";
+        Type["Eq"] = "=";
+        Type["Leq"] = "\u2264";
+        Type["Geq"] = "\u2265";
+        Type["Lt"] = "<";
+        Type["Gt"] = ">";
+        Type["DottedSymbolLiteral"] = "symbol";
+        Type["FunctionCall"] = "apply";
+        Type["RelativeTimeLiteral"] = "time";
+        Type["StringLiteral"] = "string_lit";
+    })(Type = Parser.Type || (Parser.Type = {}));
+    var FunctionCall = /** @class */ (function () {
+        function FunctionCall(name, args) {
+            this.name = name;
+            this.args = args;
+            this.type_ = Type.FunctionCall;
+        }
+        return FunctionCall;
+    }());
+    Parser.FunctionCall = FunctionCall;
+    var DottedSymbolLiteral = /** @class */ (function () {
+        function DottedSymbolLiteral(e) {
+            this.e = e;
+            this.type_ = Type.DottedSymbolLiteral;
+        }
+        return DottedSymbolLiteral;
+    }());
+    Parser.DottedSymbolLiteral = DottedSymbolLiteral;
+    var RelativeTimeLiteral = /** @class */ (function () {
+        function RelativeTimeLiteral(e) {
+            this.e = e;
+            this.type_ = Type.RelativeTimeLiteral;
+        }
+        return RelativeTimeLiteral;
+    }());
+    Parser.RelativeTimeLiteral = RelativeTimeLiteral;
+    var NumberLiteral = /** @class */ (function () {
+        function NumberLiteral(e) {
+            this.e = e;
+            this.type_ = Type.NumberLiteral;
+        }
+        return NumberLiteral;
+    }());
+    Parser.NumberLiteral = NumberLiteral;
+    var BooleanLiteral = /** @class */ (function () {
+        function BooleanLiteral(e) {
+            this.e = e;
+            this.type_ = Type.BooleanLiteral;
+        }
+        return BooleanLiteral;
+    }());
+    Parser.BooleanLiteral = BooleanLiteral;
+    var StringLiteral = /** @class */ (function () {
+        function StringLiteral(e) {
+            this.e = e;
+            this.type_ = Type.StringLiteral;
+        }
+        return StringLiteral;
+    }());
+    Parser.StringLiteral = StringLiteral;
+    var Parens = /** @class */ (function () {
+        function Parens(e) {
+            this.e = e;
+            this.type_ = Type.Parens;
+        }
+        return Parens;
+    }());
+    Parser.Parens = Parens;
+    var Exp = /** @class */ (function () {
+        function Exp(a, b) {
+            this.a = a;
+            this.b = b;
+            this.type_ = Type.Exp;
+        }
+        return Exp;
+    }());
+    Parser.Exp = Exp;
+    var Mul = /** @class */ (function () {
+        function Mul(a, b) {
+            this.a = a;
+            this.b = b;
+            this.type_ = Type.Mul;
+        }
+        return Mul;
+    }());
+    Parser.Mul = Mul;
+    var Div = /** @class */ (function () {
+        function Div(a, b) {
+            this.a = a;
+            this.b = b;
+            this.type_ = Type.Div;
+        }
+        return Div;
+    }());
+    Parser.Div = Div;
+    var Add = /** @class */ (function () {
+        function Add(a, b) {
+            this.a = a;
+            this.b = b;
+            this.type_ = Type.Add;
+        }
+        return Add;
+    }());
+    Parser.Add = Add;
+    var Sub = /** @class */ (function () {
+        function Sub(a, b) {
+            this.a = a;
+            this.b = b;
+            this.type_ = Type.Sub;
+        }
+        return Sub;
+    }());
+    Parser.Sub = Sub;
+    var Match = /** @class */ (function () {
+        function Match(a, b) {
+            this.a = a;
+            this.b = b;
+            this.type_ = Type.Match;
+        }
+        return Match;
+    }());
+    Parser.Match = Match;
+    var Lt = /** @class */ (function () {
+        function Lt(a, b) {
+            this.a = a;
+            this.b = b;
+            this.type_ = Type.Lt;
+        }
+        return Lt;
+    }());
+    Parser.Lt = Lt;
+    var Leq = /** @class */ (function () {
+        function Leq(a, b) {
+            this.a = a;
+            this.b = b;
+            this.type_ = Type.Leq;
+        }
+        return Leq;
+    }());
+    Parser.Leq = Leq;
+    var Eq = /** @class */ (function () {
+        function Eq(a, b) {
+            this.a = a;
+            this.b = b;
+            this.type_ = Type.Eq;
+        }
+        return Eq;
+    }());
+    Parser.Eq = Eq;
+    var Geq = /** @class */ (function () {
+        function Geq(a, b) {
+            this.a = a;
+            this.b = b;
+            this.type_ = Type.Geq;
+        }
+        return Geq;
+    }());
+    Parser.Geq = Geq;
+    var Gt = /** @class */ (function () {
+        function Gt(a, b) {
+            this.a = a;
+            this.b = b;
+            this.type_ = Type.Gt;
+        }
+        return Gt;
+    }());
+    Parser.Gt = Gt;
+    var Not = /** @class */ (function () {
+        function Not(e) {
+            this.e = e;
+            this.type_ = Type.Not;
+        }
+        return Not;
+    }());
+    Parser.Not = Not;
+    var Or = /** @class */ (function () {
+        function Or(a, b) {
+            this.a = a;
+            this.b = b;
+            this.type_ = Type.Or;
+        }
+        return Or;
+    }());
+    Parser.Or = Or;
+    var And = /** @class */ (function () {
+        function And(a, b) {
+            this.a = a;
+            this.b = b;
+            this.type_ = Type.And;
+        }
+        return And;
+    }());
+    Parser.And = And;
+    function orExpr(sv) {
+        return (alternative(bind(andExpr, function (ae1) { return bind(alternative(Parser.token(string_('or')), Parser.token(string_('||'))), function (_) { return bind(andExpr, function (ae2) { return Parser.return_(new Or(ae1, ae2)); }); }); }), andExpr))(sv);
+    }
+    Parser.orExpr = orExpr;
+    function andExpr(sv) {
+        return (alternative(bind(notExpr, function (ne1) { return bind(alternative(Parser.token(string_('and')), Parser.token(string_('&&'))), function (_) { return bind(notExpr, function (ne2) { return Parser.return_(new And(ne1, ne2)); }); }); }), notExpr))(sv);
+    }
+    Parser.andExpr = andExpr;
+    function notExpr(sv) {
+        return (alternative(bind(alternative(Parser.token(string_('not')), Parser.token(string_('~'))), function (_) { return bind(relExpr, function (e) { return Parser.return_(new Not(e)); }); }), relExpr))(sv);
+    }
+    Parser.notExpr = notExpr;
+    function relExpr(sv) {
+        return (bind(expr, function (e1) {
+            return alternative(bind(Parser.token(string_('=~')), function (_) { return bind(relExpr, function (e2) { return Parser.return_(new Match(e1, e2)); }); }), alternative(bind(Parser.token(string_('=')), function (_) { return bind(relExpr, function (e2) { return Parser.return_(new Eq(e1, e2)); }); }), alternative(bind(Parser.token(string_('<')), function (_) { return bind(relExpr, function (e2) { return Parser.return_(new Lt(e1, e2)); }); }), alternative(bind(Parser.token(string_('<=')), function (_) { return bind(relExpr, function (e2) { return Parser.return_(new Leq(e1, e2)); }); }), alternative(bind(Parser.token(string_('>')), function (_) { return bind(relExpr, function (e2) { return Parser.return_(new Gt(e1, e2)); }); }), alternative(bind(Parser.token(string_('>=')), function (_) { return bind(relExpr, function (e2) { return Parser.return_(new Geq(e1, e2)); }); }), Parser.return_(e1)))))));
+        }))(sv);
+    }
+    Parser.relExpr = relExpr;
+    function expr(sv) {
+        return (bind(term, function (t) {
+            return alternative(bind(Parser.token(string_('+')), function (_) { return bind(expr, function (e) { return Parser.return_(new Add(t, e)); }); }), alternative(bind(Parser.token(string_('-')), function (_) { return bind(expr, function (e) { return Parser.return_(new Sub(t, e)); }); }), Parser.return_(t)));
+        }))(sv);
+    }
+    Parser.expr = expr;
+    function term(sv) {
+        return (bind(expFactor, function (ef) {
+            return alternative(bind(Parser.token(string_('*')), function (_) {
+                return bind(term, function (t) {
+                    return Parser.return_(new Mul(ef, t));
+                });
+            }), alternative(bind(Parser.token(string_('/')), function (_) {
+                return bind(term, function (t) {
+                    return Parser.return_(new Div(ef, t));
+                });
+            }), Parser.return_(ef)));
+        }))(sv);
+    }
+    Parser.term = term;
+    function expFactor(sv) {
+        return (bind(factor, function (f) {
+            return alternative(bind(Parser.token(string_('^')), function (_) { return bind(expFactor, function (ef) { return Parser.return_(new Exp(f, ef)); }); }), // XXX associativity!
+            Parser.return_(f));
+        }))(sv);
+    }
+    Parser.expFactor = expFactor;
+    function factor(sv) {
+        return (alternative(bind(Parser.token(Parser.char('(')), function (_) { return bind(orExpr, function (oe) { return bind(Parser.token(Parser.char(')')), function (_) { return Parser.return_(new Parens(oe)); }); }); }), alternative(bind(Parser.token(Parser.timeLiteral), function (tl) { return Parser.return_(new RelativeTimeLiteral(tl)); }), // XXX TODO fix the alternatives!
+        alternative(bind(Parser.token(Parser.integerLiteral), function (n) { return Parser.return_(new NumberLiteral(n)); }), alternative(bind(Parser.token(Parser.booleanLiteral), function (b) { return Parser.return_(new BooleanLiteral(b)); }), alternative(bind(Parser.token(Parser.stringLiteral), function (str) { return Parser.return_(new StringLiteral(str)); }), alternative(// TODO wyciągnąć dottedSymbol przed alternative
+        bind(Parser.token(Parser.dottedSymbol), function (ss) {
+            return bind(Parser.token(string_('(')), function (_) {
+                return alternative(bind(Parser.token(string_(')')), function (_) { return Parser.return_(new FunctionCall(new DottedSymbolLiteral(ss), [])); }), bind(orExpr, function (e1) {
+                    return bind(many(bind(Parser.token(string_(',')), function (_) { return bind(orExpr, function (ei) { return Parser.return_(ei); }); })), function (args) {
+                        return bind(Parser.token(string_(')')), function (_) {
+                            return Parser.return_(new FunctionCall(new DottedSymbolLiteral(ss), Array.prototype.concat([e1], args)));
+                        });
+                    });
+                }));
+            });
+        }), bind(Parser.token(Parser.dottedSymbol), function (ss) { return Parser.return_(new DottedSymbolLiteral(ss)); }))))))))(sv);
+    }
+    Parser.factor = factor;
+})(Parser || (Parser = {}));
+
+
+/***/ }),
+/* 35 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "TypeError", function() { return TypeError; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "UnimplementedError", function() { return UnimplementedError; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "NoSuchName", function() { return NoSuchName; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "WrongTypeOfEvent", function() { return WrongTypeOfEvent; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "eval_", function() { return eval_; });
+/* harmony import */ var _parser__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(34);
+
+// XXX all these errors result in the predicate being false, this will allow eg. fd = 2 or childPid = 100
+var TypeError = /** @class */ (function () {
+    function TypeError(what) {
+        if (what === void 0) { what = "Type error"; }
+        this.what = what;
+    }
+    return TypeError;
+}());
+
+var UnimplementedError = /** @class */ (function () {
+    function UnimplementedError(what) {
+        if (what === void 0) { what = "This behavior is not yet implemented."; }
+        this.what = what;
+    }
+    return UnimplementedError;
+}());
+
+var NoSuchName = /** @class */ (function () {
+    function NoSuchName(what) {
+        if (what === void 0) { what = "This name cannot be retrieved"; }
+        this.what = what;
+    }
+    return NoSuchName;
+}());
+
+var WrongTypeOfEvent = /** @class */ (function () {
+    function WrongTypeOfEvent(what) {
+        if (what === void 0) { what = "This action cannot be performed on this event type"; }
+        this.what = what;
+    }
+    return WrongTypeOfEvent;
+}());
+
+function assert(cond, what) {
+    if (what === void 0) { what = ""; }
+    if (!cond)
+        throw "Assertion error: " + what;
+}
+function eval_(e, pe) {
+    if ([_parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.NumberLiteral, _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.BooleanLiteral, _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.RelativeTimeLiteral, _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.StringLiteral, _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.Parens].includes(e.type_)) {
+        return e.e;
+    }
+    else if ([_parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.Not].includes(e.type_)) {
+        var value = eval_(e.e, pe);
+        if (typeof value !== "boolean") {
+            throw new TypeError("Not needs boolean and not " + (typeof value));
+        }
+        return !value;
+    }
+    else if ([_parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.And, _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.Or].includes(e.type_)) {
+        // XXX extra important! Bez leniwej evaluacji nie można będzie zrobić np (fd = 2) or (childPid = 100) bo jedno z nich zawsze się wywali!
+        var v_a = eval_(e.a, pe);
+        if (typeof v_a !== "boolean") {
+            throw new TypeError(((e.type_ === _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.Or) ? "Or" : "And") + " needs a boolean as its first argument and not " + (typeof v_a));
+        }
+        if (e.type_ === _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.And) {
+            if (!v_a)
+                return false;
+        }
+        else if (e.type_ === _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.Or) {
+            if (v_a)
+                return true;
+        }
+        else
+            assert(false, "sdf64343");
+        var v_b = eval_(e.b, pe);
+        if (typeof v_b !== "boolean") {
+            throw new TypeError(((e.type_ === _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.Or) ? "Or" : "And") + " needs a boolean as its second argument and not " + (typeof v_b));
+        }
+        if (e.type_ === _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.And) {
+            if (!v_a)
+                return false;
+        }
+        else if (e.type_ === _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.Or) {
+            if (v_a)
+                return true;
+        }
+        else
+            assert(false, "ds4622");
+    }
+    else if ([_parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.Exp, _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.Mul, _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.Div].includes(e.type_)) {
+        var v_a = eval_(e.a, pe);
+        var v_b = eval_(e.b, pe);
+        if (typeof v_a !== "number" || typeof v_b !== "number") {
+            throw new TypeError("^, * and / need two numbers and not " + (typeof v_a) + " and " + (typeof v_b));
+        }
+        if (e.type_ === _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.Exp)
+            return Math.pow(v_a, v_b);
+        if (e.type_ === _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.Mul)
+            return v_a * v_b;
+        if (e.type_ === _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.Div)
+            return v_a / v_b;
+        else
+            assert(false, "45623");
+    }
+    else if ([_parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.Add, _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.Sub].includes(e.type_)) {
+        var v_a = eval_(e.a, pe);
+        var v_b = eval_(e.b, pe);
+        if (typeof v_a === "number" && typeof v_b === "number") {
+        }
+        else if (v_a instanceof _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].RelativeTime && v_b instanceof _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].RelativeTime) {
+        }
+        else {
+            throw new TypeError("+ and - need two numbers (or relative time offsets) and not " + (typeof v_a) + " and " + (typeof v_b));
+        }
+        if (typeof v_a === "number" && typeof v_b === "number") {
+            if (e.type_ === _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.Add)
+                return v_a + v_b;
+            else if (e.type_ === _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.Sub)
+                return v_a - v_b;
+            else
+                assert(false, "65543");
+        }
+        else if (v_a instanceof _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].RelativeTime && v_b instanceof _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].RelativeTime) {
+            if (e.type_ === _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.Add) {
+                return v_a.plus(v_b);
+            }
+            else if (e.type_ === _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.Sub) {
+                var v_b_copy = v_b.copy();
+                v_b_copy.nonnegative = !v_b_copy.nonnegative;
+                return v_a.plus(v_b_copy);
+            }
+            else
+                assert(false, "84543");
+        }
+        else
+            assert(false, "73454");
+    }
+    else if ([_parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.Lt, _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.Leq, _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.Eq, _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.Geq, _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.Gt].includes(e.type_)) {
+        var v_a = eval_(e.a, pe);
+        var v_b = eval_(e.b, pe);
+        if (typeof v_a === "number" && typeof v_b === "number") {
+        }
+        else if (v_a instanceof _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].RelativeTime && v_b instanceof _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].RelativeTime) {
+        }
+        else {
+            throw new TypeError("Any relative operation needs two numbers (or relative time offsets) and not " + (typeof v_a) + " and " + (typeof v_b));
+        }
+        var v_a_ = 0, v_b_ = 0;
+        if (v_a instanceof _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].RelativeTime && v_b instanceof _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].RelativeTime) {
+            v_a_ = v_a.toMicroseconds();
+            v_b_ = v_b.toMicroseconds();
+        }
+        else if (typeof v_a === "number" && typeof v_b === "number") {
+            v_a_ = v_a;
+            v_b_ = v_b;
+        }
+        else
+            assert(false, "types are " + (typeof v_a) + " and " + (typeof v_b));
+        if (e.type_ === _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.Lt)
+            return v_a_ < v_b_;
+        else if (e.type_ === _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.Leq)
+            return v_a_ <= v_b_;
+        else if (e.type_ === _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.Eq)
+            return v_a_ == v_b_;
+        else if (e.type_ === _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.Geq)
+            return v_a_ >= v_b_;
+        else if (e.type_ === _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.Gt)
+            return v_a_ > v_b_;
+        else
+            assert(false, "sedond place " + e.type_);
+    }
+    else if (e.type_ === _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.Match) {
+        var v_a = eval_(e.a, pe);
+        var v_b = eval_(e.b, pe);
+        if (typeof v_a !== "string" && typeof v_b !== "string") {
+            throw new TypeError("~ needs two strings and not " + (typeof v_a) + " and " + (typeof v_b));
+        }
+        var matches = v_a.match(v_b);
+        if (matches === null)
+            return false;
+        else
+            return true;
+    }
+    else if (e.type_ === _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.FunctionCall) {
+        var v_name = eval_(e.name, pe);
+        if (!(v_name && Object.prototype.toString.call(v_name) === "[object Function]")) {
+            throw new TypeError("Name to be called with arguments must be a function and " + Object.prototype.toString.call(v_name) + " is not");
+        }
+        var v_args = e.args.map(function (arg) { return eval_(arg, pe); });
+        return v_name.apply(null, v_args);
+    }
+    else if (e.type_ === _parser__WEBPACK_IMPORTED_MODULE_0__["Parser"].Type.DottedSymbolLiteral) {
+        var names = e.e;
+        assert(names.length > 0, "as23141");
+        if (names.length == 1 && ["pid", "type", "child_pid", "ret", "fd", "text", "signal"].includes(names[0])) {
+            if (names[0] == "pid") {
+                return parseInt("" + pe.pid);
+            }
+            else if (names[0] == "type") {
+                return pe.eventType;
+            }
+            else if (names[0] == "child_pid") {
+                if ("childPid" in pe)
+                    return parseInt(pe["childPid"]);
+                else
+                    throw new WrongTypeOfEvent();
+            }
+            else if (names[0] == "ret") {
+                if ("returnValue" in pe)
+                    return parseInt(pe["returnValue"]);
+                else
+                    throw new WrongTypeOfEvent();
+            }
+            else if (names[0] == "fd") {
+                if ("fd" in pe)
+                    return parseInt(pe["fd"]);
+                else
+                    throw new WrongTypeOfEvent();
+            }
+            else if (names[0] == "text") {
+                if ("content" in pe)
+                    return pe["content"];
+                else
+                    throw new WrongTypeOfEvent();
+            }
+            else if (names[0] == "signal") {
+                if ("signalName" in pe)
+                    return pe["signalName"];
+                else
+                    throw new WrongTypeOfEvent();
+            }
+            else
+                assert(false, "as1223" + ">" + names[0] + "<");
+        }
+        else { // general search
+            var currentObject = window;
+            for (var i = 0; i < names.length; i++) {
+                if (names[i] in currentObject) {
+                    currentObject = currentObject[names[i]];
+                }
+                else {
+                    throw new NoSuchName("Name cannot be evaluated:" + names.toString());
+                }
+            }
+            return currentObject;
+        }
+    }
+    else {
+        console.error('unimplemented:', e);
+        throw new UnimplementedError();
+    }
 }
 
 

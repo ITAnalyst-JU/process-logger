@@ -5,7 +5,7 @@ import {TableColumn, ParseEvent, columnsInfo, RowPredicate, ParseOutputLine} fro
 interface Props {
   selectedColumns: TableColumn[];
   data: ParseEvent[];
-  filter: (parseEvent: ParseEvent) => boolean;
+  filter_: (parseEvent: ParseEvent) => boolean;
 }
 // @ts-ignore
 const unsafe = ReactTable.unsafe;
@@ -13,10 +13,11 @@ const unsafe = ReactTable.unsafe;
 export function LogTable(props: Props) {
   const columns = props.selectedColumns.map((column) => columnsInfo.get(column)!)
   let filteredData = props.data;
+  console.log('LogTable running with ', props);
   try {
-    filteredData = props.data.filter((record) => props.filter(record))
+    filteredData = props.data.filter((record) => props.filter_(record))
   } catch (e) {
-    console.log("Something wrong with the predicate.");
+    console.log("Something wrong with the predicate:", e);
   }
   filteredData.map((record) => {
     if ((record as ParseOutputLine).content) {
